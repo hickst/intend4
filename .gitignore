@@ -1,0 +1,6 @@
+.DS_Store
+LIBRARY/.DS_Store
+/*.log
+/.gradle/
+/build/
+/Nifti
