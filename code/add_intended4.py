@@ -1,20 +1,48 @@
 #!/usr/bin/env python3
+#
+# Program to create IntendedFor array in phasediff JSON sidecar files in order
+# to trigger fMRIPrep to run SDC (Susceptibility Distortion Correction).
+# Written by: Tom Hicks and Dianne Patterson. 4/21/21.
 
 import argparse
 import os
 import sys
 import textwrap
+import bids
+from bids import BIDSLayout
 
 PROG_NAME = 'add_intended'          # default name
-SCRIPT_DIR = 'code'
 FMAP_DIR = 'fmap'
 FUNC_DIR = 'func'
 IMAGE_EXT = '.nii.gz'
 PHASEDIFF_EXT = '_phasediff.json'
+SUBJ_DIR_PREFIX = 'sub-'
+
+
+def do_single_subject(args, layout, subjnum):
+    print(f"(d_s_s): args={args}, SUBJ={subjnum}")
+
+
+def do_subjects(args):
+    # use the optionally specified BIDS data dir or default to current directory
+    bids_dir = args.get('bids_dir', os.getcwd())
+
+    # following setting avoids an annoying warning message about deprecated feature
+    bids.config.set_option('extension_initial_dot', True)
+    layout = BIDSLayout(bids_dir, validate=False)
+
+    # use the optionally specified subject or default to all subjects
+    subjnum = args.get('subjnum')
+    if (subjnum is not None):
+        do_single_subject(args, layout, subjnum)
+    else:
+        for subjnum in layout.get_subjects():
+            do_single_subject(args, layout, subjnum)
 
 
 def main(argv=None):
     """
+    --bids_dir directory
     --participant_label subj
     --verbose
     """
@@ -39,6 +67,12 @@ def main(argv=None):
         help=textwrap.dedent("(Optional) Subject number to process [default: process all subjects]")
     )
 
+    parser.add_argument(
+        '--bids_dir', dest='bids_dir',
+        default=argparse.SUPPRESS,
+        help=textwrap.dedent("(Optional) Path to BIDS data directory [default: current directory]")
+    )
+
     # set verbosity
     parser.add_argument(
         '-v', '--verbose', dest='verbose', action='store_true',
@@ -54,6 +88,9 @@ def main(argv=None):
         print(f"({PROG_NAME}): arguments={args}")
         print(f"Current directory: {os.getcwd()}")
         print(f"Python version: {sys.version}")
+
+    # do the work for each subject
+    do_subjects(args)
 
 
 

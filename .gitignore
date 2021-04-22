@@ -4,3 +4,6 @@ LIBRARY/.DS_Store
 /.gradle/
 /build/
 /Nifti
+/data
+.vscode
+pseudocode.txt
