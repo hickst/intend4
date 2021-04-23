@@ -18,9 +18,18 @@ IMAGE_EXT = '.nii.gz'
 PHASEDIFF_EXT = '_phasediff.json'
 SUBJ_DIR_PREFIX = 'sub-'
 
+def update_phasediff_fmaps(args, layout, subj_num, session_number=None):
+    print(f"(update_phasediff_fmaps): args={args}, SUBJ={subj_num}, SESS={session_number}")     # REMOVE LATER
+ 
 
 def do_single_subject(args, layout, subj_num):
-    print(f"(d_s_s): args={args}, SUBJ={subj_num}")
+    print(f"(do_single_subject): args={args}, SUBJ={subj_num}")     # REMOVE LATER
+    sessions = layout.get_sessions()
+    if (sessions):      # if there are sessions in use
+        for sess_num in sessions:
+            update_phasediff_fmaps(args, layout, subj_num, session_number=sess_num)
+    else:               # else sessions are not being used
+        update_phasediff_fmaps(args, layout, subj_num)
 
 
 def do_subjects(args):
@@ -37,7 +46,7 @@ def do_subjects(args):
         selected_subjects = subj_numbers
     else:
         selected_subjects = layout.get_subjects()
-    ## TODO: args['selected_subjects'] = selected_subjects  # REMOVE LATER?
+    ## args['selected_subjects'] = selected_subjects  # USE or REMOVE LATER?
     for subj_num in selected_subjects:
         do_single_subject(args, layout, subj_num)
 
