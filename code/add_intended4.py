@@ -19,8 +19,8 @@ PHASEDIFF_EXT = '_phasediff.json'
 SUBJ_DIR_PREFIX = 'sub-'
 
 
-def do_single_subject(args, layout, subjnum):
-    print(f"(d_s_s): args={args}, SUBJ={subjnum}")
+def do_single_subject(args, layout, subj_num):
+    print(f"(d_s_s): args={args}, SUBJ={subj_num}")
 
 
 def do_subjects(args):
@@ -31,13 +31,15 @@ def do_subjects(args):
     bids.config.set_option('extension_initial_dot', True)
     layout = BIDSLayout(bids_dir, validate=False)
 
-    # use the optionally specified subject or default to all subjects
-    subjnum = args.get('subjnum')
-    if (subjnum is not None):
-        do_single_subject(args, layout, subjnum)
+    # use the optionally specified list of subjects or default to all subjects
+    subj_numbers = args.get('subj_numbers')
+    if (subj_numbers is not None):
+        selected_subjects = subj_numbers
     else:
-        for subjnum in layout.get_subjects():
-            do_single_subject(args, layout, subjnum)
+        selected_subjects = layout.get_subjects()
+    ## TODO: args['selected_subjects'] = selected_subjects  # REMOVE LATER?
+    for subj_num in selected_subjects:
+        do_single_subject(args, layout, subj_num)
 
 
 def main(argv=None):
@@ -62,9 +64,9 @@ def main(argv=None):
 
     # add optional arguments
     parser.add_argument(
-        '--participant_label', '--participant-label', dest='subjnum',
-        default=argparse.SUPPRESS,
-        help=textwrap.dedent("(Optional) Subject number to process [default: process all subjects]")
+        '--participant_label', '--participant-label', dest='subj_numbers',
+        nargs='*', default=argparse.SUPPRESS,
+        help=textwrap.dedent("(Optional) Space-separated subject number(s) to process [default: process all subjects]")
     )
 
     parser.add_argument(
@@ -82,6 +84,11 @@ def main(argv=None):
 
     # actually parse the arguments now from the command line
     args = vars(parser.parse_args(argv))
+
+    # check any validate any arguments that need it
+    snums = args.get('subj_numbers')
+    if (snums is not None and not snums):    # only True if snums is an empty list
+        sys.exit('Error: if --participant_label is used, one or more subject numbers must be specified.')
 
     # if debugging, set verbose and echo input arguments
     if (args.get('verbose')):
