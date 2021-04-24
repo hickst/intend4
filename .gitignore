@@ -5,5 +5,6 @@ LIBRARY/.DS_Store
 /build/
 /Nifti
 /data
+.ipynb_checkpoints
 .vscode
 pseudocode.txt
