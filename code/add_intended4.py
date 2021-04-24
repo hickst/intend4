@@ -18,12 +18,31 @@ IMAGE_EXT = '.nii.gz'
 PHASEDIFF_EXT = '_phasediff.json'
 SUBJ_DIR_PREFIX = 'sub-'
 
+
+def insert_intended_for (args, layout, fmri_image_paths, subj_num, session_number=None):
+    print(f"(insert_intended_for): args={args}, SUBJ={subj_num}, SESS={session_number}")  # REMOVE LATER
+    print(f"(insert_intended_for): PATHS={fmri_image_paths}")  # REMOVE LATER
+
+
+def get_fmri_image_paths (args, layout, subj_num, session_number=None):
+    print(f"(get_fmri_image_paths): args={args}, SUBJ={subj_num}, SESS={session_number}")  # REMOVE LATER
+    if (session_number):
+        files = layout.get(subject=subj_num, session=session_number, extension='nii.gz', suffix='bold')
+    else:
+        files = layout.get(subject=subj_num, extension='nii.gz', suffix='bold')
+    return [fyl.relpath for fyl in files]
+
+
+
 def update_phasediff_fmaps(args, layout, subj_num, session_number=None):
-    print(f"(update_phasediff_fmaps): args={args}, SUBJ={subj_num}, SESS={session_number}")     # REMOVE LATER
+    print(f"(update_phasediff_fmaps): args={args}, SUBJ={subj_num}, SESS={session_number}")  # REMOVE LATER
+    fmri_image_paths = get_fmri_image_paths(args, layout, subj_num, session_number=session_number)
+    if (fmri_image_paths):
+        insert_intended_for(args, layout, fmri_image_paths, subj_num, session_number=session_number)
  
 
 def do_single_subject(args, layout, subj_num):
-    print(f"(do_single_subject): args={args}, SUBJ={subj_num}")     # REMOVE LATER
+    print(f"(do_single_subject): args={args}, SUBJ={subj_num}") # REMOVE LATER
     sessions = layout.get_sessions()
     if (sessions):      # if there are sessions in use
         for sess_num in sessions:
