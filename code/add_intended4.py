@@ -7,14 +7,16 @@
 import argparse
 import os
 import sys
-import textwrap
 import bids
+import json
+import textwrap
 from bids import BIDSLayout
 
 PROG_NAME = 'add_intended4'          # default name
 FMAP_DIR = 'fmap'
 IMAGE_EXT = ['nii.gz', 'nii']
 PHASEDIFF_EXT = 'json'
+PHASEDIFF_SUFFIX = 'phasediff'
 SUBJ_DIR_PREFIX = 'sub-'
 
 
@@ -25,27 +27,46 @@ def has_session(layout, subj_id):
 def sessions_for_subject(layout, subj_id):
     return layout.get(return_type='id', target='session', subject=subj_id)
 
+def insert_intended_for (args, layout, fmri_image_paths, pd_sidecar):
+    # print(f"(insert_intended_for): args={args}, paths={fmri_image_paths}, sidecar={pd_sidecar}")  # REMOVE LATER
+    pd_dict = pd_sidecar.get_dict()
+    pd_dict['IntendedFor'] = fmri_image_paths
+    return pd_dict
 
-def insert_intended_for (args, layout, fmri_image_paths, subj_id, session_id=None):
-    print(f"\n(insert_intended_for): args={args}, SUBJ={subj_id}, SESS={session_id}")  # REMOVE LATER
-    print(f"(insert_intended_for): PATHS={fmri_image_paths}")  # REMOVE LATER
-    pd_sidecar = layout.get(target='subject', subject=subj_id, session=session_id,
-        suffix='phasediff', extension=PHASEDIFF_EXT)
-    print(f"(insert_intended_for): PDCARS={pd_sidecar}")  # REMOVE LATER
+
+def get_sidecar_and_insert (args, layout, fmri_image_paths, subj_id, session_id=None):
+    print(f"\n(get_sidecar_and_insert): args={args}, SUBJ={subj_id}, SESS={session_id}")  # REMOVE LATER
+    print(f"(get_sidecar_and_insert): PATHS={fmri_image_paths}")  # REMOVE LATER
+    pd_sidecars = layout.get(target='subject', subject=subj_id, session=session_id,
+        suffix=PHASEDIFF_SUFFIX, extension=PHASEDIFF_EXT)
+    print(f"(get_sidecar_and_insert): PDCARS={pd_sidecars}")  # REMOVE LATER
+
+    num_sidecars = len(pd_sidecars)
+    if (num_sidecars < 1):
+        sess = f" in session {session_id}" if session_id else ''
+        err_msg = f"Error: {PHASEDIFF_SUFFIX} sidecar file is missing for subject {subj_id}{sess}. Skipping..."
+        print(err_msg, file=sys.stderr)
+        return
+    elif (num_sidecars > 1):
+        sess = f" in session {session_id}" if session_id else ''
+        err_msg = f"Error: Found more than 1 {PHASEDIFF_SUFFIX} sidecars for subject {subj_id}{sess}. Skipping..."
+        print(err_msg, file=sys.stderr)
+        return
+    else:
+        modified_dict = insert_intended_for(args, layout, fmri_image_paths, pd_sidecars[0])
+        print(modified_dict)        # REMOVE LATER
+        # TODO: convert modified dictionary to JSON and write back to sidecar file
 
 
 def get_fmri_image_paths (args, layout, subj_id, session_id=None):
-    # print(f"(get_fmri_image_paths): args={args}, SUBJ={subj_id}, SESS={session_id}")  # REMOVE LATER
     files = layout.get(subject=subj_id, session=session_id, extension=IMAGE_EXT, suffix='bold')
     return [subjrelpath(fyl) for fyl in files]
 
 
 def update_phasediff_fmaps(args, layout, subj_id, session_id=None):
-    # print(f"(update_phasediff_fmaps): args={args}, SUBJ={subj_id}, SESS={session_id}")  # REMOVE LATER
     fmri_image_paths = get_fmri_image_paths(args, layout, subj_id, session_id=session_id)
-    # print(f"(update_phasediff_fmaps): PATHS({len(fmri_image_paths)})={fmri_image_paths}")  # REMOVE LATER
     if (fmri_image_paths):
-        insert_intended_for(args, layout, fmri_image_paths, subj_id, session_id=session_id)
+        get_sidecar_and_insert(args, layout, fmri_image_paths, subj_id, session_id=session_id)
  
 
 def do_single_subject(args, layout, subj_id):
@@ -78,6 +99,10 @@ def do_subjects(args):
 
 
 def subjrelpath(bids_file_object):
+    """
+    Return the subject-relative path for the given BIDSFile or None if the
+    given file is not a relative to any subject.
+    """
     relpath = bids_file_object.relpath
     if (relpath.startswith(SUBJ_DIR_PREFIX)):
         ndx = relpath.find('/')
