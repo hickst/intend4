@@ -18,50 +18,44 @@ PHASEDIFF_EXT = 'json'
 SUBJ_DIR_PREFIX = 'sub-'
 
 
-def has_session(layout, subj_num):
-    return subj_num in layout.get(return_type='id', target='subject', session=layout.get_sessions())
+def has_session(layout, subj_id):
+    return subj_id in layout.get(return_type='id', target='subject', session=layout.get_sessions())
 
 
-def sessions_for_subject(layout, subj_num):
-    return layout.get(return_type='id', target='session', subject=subj_num)
+def sessions_for_subject(layout, subj_id):
+    return layout.get(return_type='id', target='session', subject=subj_id)
 
 
-def insert_intended_for (args, layout, fmri_image_paths, subj_num, session_number=None):
-    print(f"(insert_intended_for): args={args}, SUBJ={subj_num}, SESS={session_number}")  # REMOVE LATER
-    # print(f"(insert_intended_for): PATHS={fmri_image_paths}")  # REMOVE LATER
-    pd_sidecar = layout.get(target='subject', subject=subj_num, session=session_number,
+def insert_intended_for (args, layout, fmri_image_paths, subj_id, session_id=None):
+    print(f"\n(insert_intended_for): args={args}, SUBJ={subj_id}, SESS={session_id}")  # REMOVE LATER
+    print(f"(insert_intended_for): PATHS={fmri_image_paths}")  # REMOVE LATER
+    pd_sidecar = layout.get(target='subject', subject=subj_id, session=session_id,
         suffix='phasediff', extension=PHASEDIFF_EXT)
     print(f"(insert_intended_for): PDCARS={pd_sidecar}")  # REMOVE LATER
 
 
-def get_fmri_image_paths (args, layout, subj_num, session_number=None):
-    # print(f"(get_fmri_image_paths): args={args}, SUBJ={subj_num}, SESS={session_number}")  # REMOVE LATER
-    if (session_number):
-        files = layout.get(subject=subj_num, session=session_number, extension=IMAGE_EXT, suffix='bold')
-        # print(f"FILES({session_number})={files}")     # REMOVE LATER
-    else:
-        files = layout.get(subject=subj_num, extension=IMAGE_EXT, suffix='bold')
-        # print(f"FILES({session_number})={files}")     # REMOVE LATER
-
+def get_fmri_image_paths (args, layout, subj_id, session_id=None):
+    # print(f"(get_fmri_image_paths): args={args}, SUBJ={subj_id}, SESS={session_id}")  # REMOVE LATER
+    files = layout.get(subject=subj_id, session=session_id, extension=IMAGE_EXT, suffix='bold')
     return [subjrelpath(fyl) for fyl in files]
 
 
-def update_phasediff_fmaps(args, layout, subj_num, session_number=None):
-    # print(f"(update_phasediff_fmaps): args={args}, SUBJ={subj_num}, SESS={session_number}")  # REMOVE LATER
-    fmri_image_paths = get_fmri_image_paths(args, layout, subj_num, session_number=session_number)
+def update_phasediff_fmaps(args, layout, subj_id, session_id=None):
+    # print(f"(update_phasediff_fmaps): args={args}, SUBJ={subj_id}, SESS={session_id}")  # REMOVE LATER
+    fmri_image_paths = get_fmri_image_paths(args, layout, subj_id, session_id=session_id)
     # print(f"(update_phasediff_fmaps): PATHS({len(fmri_image_paths)})={fmri_image_paths}")  # REMOVE LATER
     if (fmri_image_paths):
-        insert_intended_for(args, layout, fmri_image_paths, subj_num, session_number=session_number)
+        insert_intended_for(args, layout, fmri_image_paths, subj_id, session_id=session_id)
  
 
-def do_single_subject(args, layout, subj_num):
-    # print(f"(do_single_subject): args={args}, SUBJ={subj_num}") # REMOVE LATER
-    sessions = sessions_for_subject(layout, subj_num)
+def do_single_subject(args, layout, subj_id):
+    # print(f"(do_single_subject): args={args}, SUBJ={subj_id}") # REMOVE LATER
+    sessions = sessions_for_subject(layout, subj_id)
     if (sessions):      # if there are sessions in use
         for sess_num in sessions:
-            update_phasediff_fmaps(args, layout, subj_num, session_number=sess_num)
+            update_phasediff_fmaps(args, layout, subj_id, session_id=sess_num)
     else:               # else sessions are not being used
-        update_phasediff_fmaps(args, layout, subj_num)
+        update_phasediff_fmaps(args, layout, subj_id)
 
 
 def do_subjects(args):
@@ -73,14 +67,14 @@ def do_subjects(args):
     layout = BIDSLayout(bids_dir, validate=False)
 
     # use the optionally specified list of subjects or default to all subjects
-    subj_numbers = args.get('subj_numbers')
-    if (subj_numbers is not None):
-        selected_subjects = subj_numbers
+    subj_ids = args.get('subj_ids')
+    if (subj_ids is not None):
+        selected_subjects = subj_ids
     else:
         selected_subjects = layout.get_subjects()
     ## args['selected_subjects'] = selected_subjects  # USE or REMOVE LATER?
-    for subj_num in selected_subjects:
-        do_single_subject(args, layout, subj_num)
+    for subj_id in selected_subjects:
+        do_single_subject(args, layout, subj_id)
 
 
 def subjrelpath(bids_file_object):
@@ -117,7 +111,7 @@ def main(argv=None):
 
     # add optional arguments
     parser.add_argument(
-        '--participant_label', '--participant-label', dest='subj_numbers',
+        '--participant_label', '--participant-label', dest='subj_ids',
         nargs='*', default=argparse.SUPPRESS,
         help=textwrap.dedent("(Optional) Space-separated subject number(s) to process [default: process all subjects]")
     )
@@ -139,7 +133,7 @@ def main(argv=None):
     args = vars(parser.parse_args(argv))
 
     # check any validate any arguments that need it
-    snums = args.get('subj_numbers')
+    snums = args.get('subj_ids')
     if (snums is not None and not snums):    # only True if snums is an empty list
         sys.exit('Error: if --participant_label is used, one or more subject numbers must be specified.')
 
