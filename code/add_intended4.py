@@ -14,7 +14,7 @@ from bids import BIDSLayout
 PROG_NAME = 'add_intended4'          # default name
 FMAP_DIR = 'fmap'
 IMAGE_EXT = ['nii.gz', 'nii']
-PHASEDIFF_EXT = '_phasediff.json'
+PHASEDIFF_EXT = 'json'
 SUBJ_DIR_PREFIX = 'sub-'
 
 
@@ -27,9 +27,11 @@ def sessions_for_subject(layout, subj_num):
 
 
 def insert_intended_for (args, layout, fmri_image_paths, subj_num, session_number=None):
-    # print(f"(insert_intended_for): args={args}, SUBJ={subj_num}, SESS={session_number}")  # REMOVE LATER
+    print(f"(insert_intended_for): args={args}, SUBJ={subj_num}, SESS={session_number}")  # REMOVE LATER
     # print(f"(insert_intended_for): PATHS={fmri_image_paths}")  # REMOVE LATER
-    pass
+    pd_sidecar = layout.get(target='subject', subject=subj_num, session=session_number,
+        suffix='phasediff', extension=PHASEDIFF_EXT)
+    print(f"(insert_intended_for): PDCARS={pd_sidecar}")  # REMOVE LATER
 
 
 def get_fmri_image_paths (args, layout, subj_num, session_number=None):
@@ -47,7 +49,7 @@ def get_fmri_image_paths (args, layout, subj_num, session_number=None):
 def update_phasediff_fmaps(args, layout, subj_num, session_number=None):
     # print(f"(update_phasediff_fmaps): args={args}, SUBJ={subj_num}, SESS={session_number}")  # REMOVE LATER
     fmri_image_paths = get_fmri_image_paths(args, layout, subj_num, session_number=session_number)
-    print(f"(update_phasediff_fmaps): PATHS({len(fmri_image_paths)})={fmri_image_paths}")  # REMOVE LATER
+    # print(f"(update_phasediff_fmaps): PATHS({len(fmri_image_paths)})={fmri_image_paths}")  # REMOVE LATER
     if (fmri_image_paths):
         insert_intended_for(args, layout, fmri_image_paths, subj_num, session_number=session_number)
  
