@@ -11,10 +11,9 @@ import textwrap
 import bids
 from bids import BIDSLayout
 
-PROG_NAME = 'add_intended'          # default name
+PROG_NAME = 'add_intended4'          # default name
 FMAP_DIR = 'fmap'
-FUNC_DIR = 'func'
-IMAGE_EXT = '.nii.gz'
+IMAGE_EXT = ['nii.gz', 'nii']
 PHASEDIFF_EXT = '_phasediff.json'
 SUBJ_DIR_PREFIX = 'sub-'
 
@@ -36,25 +35,25 @@ def insert_intended_for (args, layout, fmri_image_paths, subj_num, session_numbe
 def get_fmri_image_paths (args, layout, subj_num, session_number=None):
     # print(f"(get_fmri_image_paths): args={args}, SUBJ={subj_num}, SESS={session_number}")  # REMOVE LATER
     if (session_number):
-        files = layout.get(subject=subj_num, session=session_number, extension='nii.gz', suffix='bold')
+        files = layout.get(subject=subj_num, session=session_number, extension=IMAGE_EXT, suffix='bold')
         # print(f"FILES({session_number})={files}")     # REMOVE LATER
     else:
-        files = layout.get(subject=subj_num, extension='nii.gz', suffix='bold')
+        files = layout.get(subject=subj_num, extension=IMAGE_EXT, suffix='bold')
         # print(f"FILES({session_number})={files}")     # REMOVE LATER
 
-    return [fyl.relpath for fyl in files]
+    return [subjrelpath(fyl) for fyl in files]
 
 
 def update_phasediff_fmaps(args, layout, subj_num, session_number=None):
     # print(f"(update_phasediff_fmaps): args={args}, SUBJ={subj_num}, SESS={session_number}")  # REMOVE LATER
     fmri_image_paths = get_fmri_image_paths(args, layout, subj_num, session_number=session_number)
-    print(f"(update_phasediff_fmaps): PATHS={fmri_image_paths}")  # REMOVE LATER
+    print(f"(update_phasediff_fmaps): PATHS({len(fmri_image_paths)})={fmri_image_paths}")  # REMOVE LATER
     if (fmri_image_paths):
         insert_intended_for(args, layout, fmri_image_paths, subj_num, session_number=session_number)
  
 
 def do_single_subject(args, layout, subj_num):
-    print(f"(do_single_subject): args={args}, SUBJ={subj_num}") # REMOVE LATER
+    # print(f"(do_single_subject): args={args}, SUBJ={subj_num}") # REMOVE LATER
     sessions = sessions_for_subject(layout, subj_num)
     if (sessions):      # if there are sessions in use
         for sess_num in sessions:
@@ -80,6 +79,18 @@ def do_subjects(args):
     ## args['selected_subjects'] = selected_subjects  # USE or REMOVE LATER?
     for subj_num in selected_subjects:
         do_single_subject(args, layout, subj_num)
+
+
+def subjrelpath(bids_file_object):
+    relpath = bids_file_object.relpath
+    if (relpath.startswith(SUBJ_DIR_PREFIX)):
+        ndx = relpath.find('/')
+        if (ndx != -1):
+            return relpath[ndx+1:]
+        else:
+            raise TypeError(f"Error: Unable to remove subject prefix from {relpath}: no '/' found.")
+    else:           # given file is not relative to a subject directory
+        return None
 
 
 def main(argv=None):
