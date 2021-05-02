@@ -5,7 +5,7 @@ LABEL maintainer="Dianne Patterson dkp@email.arizona.edu"
 ARG TESTS=notests
 
 ENV RUNNING_IN_CONTAINER True
-ENV INSTALL_PATH /app
+ENV INSTALL_PATH /intend4
 
 RUN mkdir -p $INSTALL_PATH
 
@@ -16,12 +16,12 @@ RUN pip install -r requirements.txt
 
 COPY setup.py setup.py
 COPY .bash_env /etc/trhenv
-COPY code code
+COPY intend4 intend4
 # COPY config config
 # COPY $TESTS $TESTS
 
 # following line runs setup.py to setup CLI scripts:
 RUN pip install .
 
-ENTRYPOINT [ "./code/add_intended4.py" ]
+ENTRYPOINT [ "./intend4/add_intended4.py" ]
 CMD [ "-v", "-h" ]
