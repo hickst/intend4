@@ -34,6 +34,22 @@ def sessions_for_subject(layout, subj_id):
     return layout.get(return_type='id', target='session', subject=subj_id)
 
 
+def subjrelpath(bids_file_object):
+    """
+    Return the subject-relative path for the given BIDSFile or None if the
+    given file is not a relative to any subject.
+    """
+    relpath = bids_file_object.relpath
+    if (relpath.startswith(SUBJ_DIR_PREFIX)):
+        ndx = relpath.find('/')
+        if (ndx != -1):
+            return relpath[ndx+1:]
+        else:
+            raise TypeError(f"Error: Unable to remove subject prefix from {relpath}: no '/' found.")
+    else:           # given file is not relative to a subject directory
+        return None
+
+
 def create_intended_for (args, fmri_image_paths, pd_sidecar):
     "Create and return the dictionary containing the IntendedFor information."
     pd_dict = pd_sidecar.get_dict()
@@ -124,22 +140,6 @@ def do_subjects(args):
         selected_subjects = layout.get_subjects()
     for subj_id in selected_subjects:
         do_single_subject(args, layout, subj_id)
-
-
-def subjrelpath(bids_file_object):
-    """
-    Return the subject-relative path for the given BIDSFile or None if the
-    given file is not a relative to any subject.
-    """
-    relpath = bids_file_object.relpath
-    if (relpath.startswith(SUBJ_DIR_PREFIX)):
-        ndx = relpath.find('/')
-        if (ndx != -1):
-            return relpath[ndx+1:]
-        else:
-            raise TypeError(f"Error: Unable to remove subject prefix from {relpath}: no '/' found.")
-    else:           # given file is not relative to a subject directory
-        return None
 
 
 def main(argv=None):
