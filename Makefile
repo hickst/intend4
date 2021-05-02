@@ -24,7 +24,6 @@ help:
 	@echo '     stop       - stop a running container'
 
 bash:
-	docker cp .bash_env ${NAME}:${ENVLOC}
 	docker run -it --rm --name ${NAME} -v ${DATADIR}:${CON_DATADIR} --entrypoint ${SHELL} ${IMG} ${ARGS}
 
 cleancache:
