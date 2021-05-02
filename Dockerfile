@@ -23,5 +23,5 @@ COPY intend4 intend4
 # following line runs setup.py to setup CLI scripts:
 RUN pip install .
 
-ENTRYPOINT [ "./intend4/add_intended4.py" ]
+ENTRYPOINT [ "add_intended4" ]
 CMD [ "-v", "-h" ]
