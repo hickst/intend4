@@ -1,0 +1,12 @@
+**/__pycache__
+*~
+.DS_Store
+.dockerignore
+.git
+.gitignore
+.venv
+.vscode
+/data
+/notebooks
+Dockerfile
+Makefile

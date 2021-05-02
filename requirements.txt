@@ -1,0 +1,2 @@
+# PyBIDS library
+pybids==0.13
