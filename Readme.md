@@ -5,7 +5,7 @@
 ## Background and Problem
 
 My hope is that this information is dated and this tool will be unecessary in the future.
-fMRIPrep does not default to using your fieldmaps to do susceptibility distortion correction (SDC). Instead, the fmap/sub-188_phasediff.json must include an IntendedFor list; and the IntendedFor list must contain the relative path to the bold fMRI images. The relative path should include only the path from within the subject directory.
+fMRIPrep does not default to using your fieldmaps to do susceptibility distortion correction (SDC). Instead, the phasediff fieldmap sidecar (e.g. fmap/sub-188_phasediff.json) must include an IntendedFor list; and the IntendedFor list must contain the relative path to the bold fMRI images. The relative path should include only the path from within the subject directory.
 
 Here is an example of the IntendedFor list in fmap/sub-188_phasediff.json. This is an example for a subject without sessions, and it indicates that SDC should be used for all four of these fMRI runs:
 
