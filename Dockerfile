@@ -1,6 +1,6 @@
-FROM python:3.9.4
+FROM python:3.9.7
 
-LABEL maintainer="Dianne Patterson dkp@email.arizona.edu"
+LABEL maintainer="Tom Hicks hickst@email.arizona.edu"
 
 ARG TESTS=notests
 
@@ -17,11 +17,11 @@ RUN pip install -r requirements.txt
 COPY setup.py setup.py
 COPY .bash_env /etc/trhenv
 COPY intend4 intend4
-# COPY config config
-# COPY $TESTS $TESTS
+COPY config config
+COPY $TESTS $TESTS
 
 # following line runs setup.py to setup CLI scripts:
 RUN pip install .
 
-ENTRYPOINT [ "add_intended4" ]
+ENTRYPOINT [ "intended4" ]
 CMD [ "-v", "-h" ]
