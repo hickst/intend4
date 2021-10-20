@@ -23,5 +23,5 @@ COPY $TESTS $TESTS
 # following line runs setup.py to setup CLI scripts:
 RUN pip install .
 
-ENTRYPOINT [ "intended4" ]
+ENTRYPOINT [ "intend4" ]
 CMD [ "-v", "-h" ]

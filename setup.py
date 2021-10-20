@@ -9,7 +9,7 @@ setup(
     install_requires=[],
     entry_points={
         'console_scripts': [
-            'intended4=intend4.intended4_cli:main',
+            'intend4=intend4.intend4_cli:main',
         ]
     },
 )

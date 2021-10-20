@@ -10,7 +10,7 @@ import os
 import sys
 import textwrap
 
-from intended4 import do_subjects
+from intend4.intend4 import do_subjects
 
 
 PROG_NAME = 'intended4'                # program name
