@@ -3,7 +3,7 @@
 # Program to create IntendedFor array in phasediff JSON sidecar files in order
 # to trigger fMRIPrep to run SDC (Susceptibility Distortion Correction).
 #   Written by: Tom Hicks and Dianne Patterson. 4/21/21.
-#   Last Modified: Separate into CLI and lib modules.
+#   Last Modified: Remove leftover constants.
 #
 import argparse
 import os
@@ -13,12 +13,7 @@ import textwrap
 from intend4.intend4 import do_subjects
 
 
-PROG_NAME = 'intended4'                # program name
-FMAP_DIR = 'fmap'
-IMAGE_EXT = ['nii.gz', 'nii']
-PHASEDIFF_EXT = 'json'
-PHASEDIFF_SUFFIX = 'phasediff'
-SUBJ_DIR_PREFIX = 'sub-'
+PROG_NAME = 'intend4'                  # program name
 
 
 def main(argv=None):

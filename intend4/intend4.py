@@ -1,7 +1,7 @@
-# Program to create IntendedFor array in phasediff JSON sidecar files in order
+# Program to insert IntendedFor array in phasediff JSON sidecar files in order
 # to trigger fMRIPrep to run SDC (Susceptibility Distortion Correction).
-# Written by: Tom Hicks and Dianne Patterson. 4/21/21.
-#   Last Modified: Sort defs.
+#   Written by: Tom Hicks and Dianne Patterson. 4/21/21.
+#   Last Modified: Update/add all function docs.
 #
 import os
 import sys
@@ -9,14 +9,17 @@ import bids
 import json
 from bids import BIDSLayout
 
-FMAP_DIR = 'fmap'
 IMAGE_EXT = ['nii.gz', 'nii']
-PHASEDIFF_EXT = 'json'
 PHASEDIFF_SUFFIX = 'phasediff'
+SIDECAR_EXT = 'json'
 SUBJ_DIR_PREFIX = 'sub-'
 
 
 def do_subjects(args):
+  """
+  Find and modify all phase diff sidecars for the specified (or all) subjects
+  and sessions.
+  """
   # use the optionally specified BIDS data dir or default to current directory
   bids_dir = args.get('bids_dir', os.getcwd())
 
@@ -34,24 +37,22 @@ def do_subjects(args):
     do_single_subject(args, layout, subj_id)
 
 
-def create_intended_for (args, fmri_image_paths, pd_sidecar):
-  "Create and return the dictionary containing the IntendedFor information."
-  pd_dict = pd_sidecar.get_dict()
-  pd_dict['IntendedFor'] = fmri_image_paths
-  sorted_dict = dict(sorted(pd_dict.items()))
-  return sorted_dict
-
-
 def do_single_subject(args, layout, subj_id):
+  """
+  Find and modify the phase diff sidecars for a single subject (and optional sessions).
+  """
   sessions = sessions_for_subject(layout, subj_id)
-  if (sessions):      # if there are sessions in use
+  if (sessions):             # if there are sessions in use
     for sess_num in sessions:
       update_phasediff_fmaps(args, layout, subj_id, session_id=sess_num)
-  else:               # else sessions are not being used
+  else:                      # else sessions are not being used
     update_phasediff_fmaps(args, layout, subj_id)
 
 
 def get_fmri_image_paths (args, layout, subj_id, session_id=None):
+  """
+  Return a list of fMRI image paths for the given subject (or subject/session).
+  """
   files = layout.get(subject=subj_id, session=session_id, extension=IMAGE_EXT, suffix='bold')
   return [subjrelpath(fyl) for fyl in files]
 
@@ -61,8 +62,13 @@ def get_permissions(file_path):
 
 
 def get_sidecar_and_insert (args, layout, fmri_image_paths, subj_id, session_id=None):
+  """
+  Insert the given fMRI image paths into the appropriate sidecar data structure for
+  for identified subject (or subject/session). Then rewrite the (modified) sidecar.
+  Raise an error if more than one sidecar is found per subject (or subject/session).
+  """
   pd_sidecars = layout.get(target='subject', subject=subj_id, session=session_id,
-                           suffix=PHASEDIFF_SUFFIX, extension=PHASEDIFF_EXT)
+                           suffix=PHASEDIFF_SUFFIX, extension=SIDECAR_EXT)
   num_sidecars = len(pd_sidecars)
   if (num_sidecars < 1):
     sess = f" in session {session_id}" if session_id else ''
@@ -76,13 +82,26 @@ def get_sidecar_and_insert (args, layout, fmri_image_paths, subj_id, session_id=
     return
   else:
     pd_sidecar = pd_sidecars[0]
-    intended_for_dict = create_intended_for(args, fmri_image_paths, pd_sidecar)
-    write_intended_for(args, intended_for_dict, pd_sidecar)
+    modified_sidecar = insert_intended_for(args, fmri_image_paths, pd_sidecar)
+    write_intended_for(args, modified_sidecar, pd_sidecar)
 
 
 def has_session(layout, subj_id):
   "Tell whether the identified subject has sessions or not."
   return subj_id in layout.get(return_type='id', target='subject', session=layout.get_sessions())
+
+
+def insert_intended_for (args, fmri_image_paths, pd_sidecar):
+  """
+  Modify the sidecar data structure, storing the fMRI image paths under
+  the IntendedFor key. If IntendedFor key already exists, its contents
+  are replaced by the given fMRI image paths.
+  Returns the sidecar data structure sorted by keywords.
+  """
+  pd_dict = pd_sidecar.get_dict()
+  pd_dict['IntendedFor'] = fmri_image_paths
+  sorted_dict = dict(sorted(pd_dict.items()))
+  return sorted_dict
 
 
 def output_JSON (data, file_path=None, **json_keywords):
@@ -122,6 +141,10 @@ def subjrelpath(bids_file_object):
 
 
 def update_phasediff_fmaps(args, layout, subj_id, session_id=None):
+  """
+  Get paths to all fMRI images for the given subject (or subject/session)
+  and insert them in the appropriate sidecar.
+  """
   if (args.get('verbose')):
     sess = f" in session {session_id}" if session_id else ''
     print(f"Processing subject {subj_id}{sess}")
