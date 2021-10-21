@@ -1,12 +1,15 @@
 **/__pycache__
 *~
+.coverage
 .DS_Store
 .dockerignore
 .git
 .gitignore
+.pytest_cache
 .venv
 .vscode
 /data
 /notebooks
 Dockerfile
+EXTRAS
 Makefile
