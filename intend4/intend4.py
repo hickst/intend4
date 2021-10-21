@@ -1,13 +1,17 @@
 # Program to insert IntendedFor array in phasediff JSON sidecar files in order
 # to trigger fMRIPrep to run SDC (Susceptibility Distortion Correction).
 #   Written by: Tom Hicks and Dianne Patterson. 4/21/21.
-#   Last Modified: Update/add all function docs.
+#   Last Modified: Move get_permission out, add validate_modality.
 #
 import os
 import sys
 import bids
 import json
 from bids import BIDSLayout
+
+from intend4 import ALLOWED_MODALITIES
+from intend4.file_utils import get_permissions
+
 
 IMAGE_EXT = ['nii.gz', 'nii']
 PHASEDIFF_SUFFIX = 'phasediff'
@@ -55,10 +59,6 @@ def get_fmri_image_paths (args, layout, subj_id, session_id=None):
   """
   files = layout.get(subject=subj_id, session=session_id, extension=IMAGE_EXT, suffix='bold')
   return [subjrelpath(fyl) for fyl in files]
-
-
-def get_permissions(file_path):
-  return os.stat(file_path).st_mode
 
 
 def get_sidecar_and_insert (args, layout, fmri_image_paths, subj_id, session_id=None):
@@ -151,6 +151,18 @@ def update_phasediff_fmaps(args, layout, subj_id, session_id=None):
   fmri_image_paths = get_fmri_image_paths(args, layout, subj_id, session_id=session_id)
   if (fmri_image_paths):
     get_sidecar_and_insert(args, layout, fmri_image_paths, subj_id, session_id=session_id)
+
+
+def validate_modality (modality):
+  """
+   Check the validity of the given modality string which must be one
+   of the elements of the ALLOWED_MODALITIES list.
+   Returns the canonicalized modality string or raises ValueError if
+   given an invalid modality string.
+  """
+  if (modality in ALLOWED_MODALITIES):
+    return modality
+  raise ValueError(f"Modality argument must be one of: {ALLOWED_MODALITIES}")
 
 
 def write_intended_for (args, intended_for_dict, pd_sidecar):
