@@ -55,14 +55,17 @@ run:
 runt:
 	@docker run -it --rm --name ${NAME} -v ${DATADIR}:${CON_DATADIR} ${TSTIMG} --verbose --bids_dir=${CON_DATADIR} ${ARGS}
 
+runtc:
+	docker run -it --rm --name ${NAME} -v ${DATADIR}:${CON_DATADIR} --entrypoint pytest ${TSTIMG} -vv --cov-report term-missing --cov=${SCOPE}
+
 stop:
 	docker stop ${NAME}
 
 testall:
-	pytest -vv -x ${TESTS} ${ARGS} --cov-report term-missing --cov ${SCOPE}
+	pytest -vv -x ${TESTS} ${ARGS} --cov-report term-missing --cov=${SCOPE}
 
 test1:
-	pytest -vv ${TESTS} -k ${ONLY} --cov-report term-missing --cov ${SCOPE}
+	pytest -vv ${TESTS} -k ${ONLY} --cov-report term-missing --cov=${SCOPE}
 
 tests:
-	pytest -vv ${TESTS} ${ARGS} --cov-report term-missing --cov ${SCOPE}
+	pytest -vv ${TESTS} ${ARGS} --cov-report term-missing --cov=${SCOPE}
