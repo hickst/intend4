@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-#
 # Program to create IntendedFor array in phasediff JSON sidecar files in order
 # to trigger fMRIPrep to run SDC (Susceptibility Distortion Correction).
 #   Written by: Tom Hicks and Dianne Patterson. 4/21/21.
