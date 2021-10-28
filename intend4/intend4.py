@@ -1,7 +1,7 @@
 # Program to insert IntendedFor array in phasediff JSON sidecar files in order
 # to trigger fMRIPrep or QSIPrep to run SDC (Susceptibility Distortion Correction).
 #   Written by: Tom Hicks and Dianne Patterson. 4/21/21.
-#   Last Modified: Add ability to reset IntendedFor fields.
+#   Last Modified: Return count of modified sidecars. Enhanced processing status message.
 #
 import os
 import sys
@@ -39,15 +39,17 @@ def do_subjects(modality, args):
     raise RuntimeError(
       f"BIDS validator got an error while processing the BIDS Data directory '{bids_dir}'.")
 
-
   # use the optionally specified list of subjects or default to all subjects
   subj_ids = args.get('subj_ids')
   if (subj_ids is not None):
     selected_subjects = subj_ids
   else:
     selected_subjects = layout.get_subjects()
+
+  mod_count = 0
   for subj_id in selected_subjects:
-    do_single_subject(modality, args, layout, subj_id)
+    mod_count += do_single_subject(modality, args, layout, subj_id)
+  return mod_count
 
 
 def do_single_subject(modality, args, layout, subj_id):
@@ -55,15 +57,19 @@ def do_single_subject(modality, args, layout, subj_id):
   For a single subject (and optional sessions), find and modify the fieldmap sidecar
   which will be used to correct the image with the given modality.
   """
+  mod_count = 0
   sessions = sessions_for_subject(layout, subj_id)
   if (sessions):             # if there are sessions in use
     for sess_num in sessions:
       update_fieldmap(modality, args, layout, subj_id, session_id=sess_num)
+      mod_count += 1
   else:                      # else sessions are not being used
     update_fieldmap(modality, args, layout, subj_id)
+    mod_count += 1
+  return mod_count
 
 
-def get_fieldmap_suffix (modality, args):
+def get_fieldmap_suffix (modality, args=None):
   """
   Compute the fieldmap suffix for correcting images of the given modality, allowing
   for special cases specified by additional arguments (in the future).
@@ -167,8 +173,10 @@ def update_fieldmap(modality, args, layout, subj_id, session_id=None):
   and insert them in the appropriate sidecar.
   """
   if (args.get('verbose')):
+    prog_name = args.get('PROG_NAME')
+    prog_prefix = f"({prog_name}): " if prog_name else ''
     sess = f" in session {session_id}" if session_id else ''
-    print(f"Processing subject {subj_id}{sess}")
+    print(f"{prog_prefix}Processing subject {subj_id}{sess}")
   image_paths = get_image_paths(modality, args, layout, subj_id, session_id=session_id)
   if (image_paths):
     get_sidecar_and_modify(modality, args, layout, image_paths, subj_id, session_id=session_id)
