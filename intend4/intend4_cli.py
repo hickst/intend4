@@ -1,7 +1,7 @@
 # Program to create IntendedFor array in phasediff JSON sidecar files in order
 # to trigger fMRIPrep to run SDC (Susceptibility Distortion Correction).
 #   Written by: Tom Hicks and Dianne Patterson. 4/21/21.
-#   Last Modified: Call top lib method w/ modality. Turn on BIDS validation. Allow dash/underscore flags.
+#   Last Modified: Update verbose status messages for ability to reset.
 #
 import argparse
 import os
@@ -99,14 +99,16 @@ def main(argv=None):
   #   print(f"Python version: {sys.version}")
 
   if (args.get('verbose')):
-    print(f"({PROG_NAME}): Modifying sidecar files for modality '{modality}'.",
+    action = 'Modifying' if (not args.get('remove')) else 'Removing'
+    print(f"({PROG_NAME}): {action} IntendedFor field in sidecar files for modality '{modality}'.",
       file=sys.stderr)
 
   # do the specified sidecar modifications
   mod_count = in4.do_subjects(modality, args)
 
   if (args.get('verbose')):
-    print(f"({PROG_NAME}): Modified {mod_count} sidecars.")
+    action = 'Modified' if (not args.get('remove')) else 'Removed'
+    print(f"({PROG_NAME}): {action} {mod_count} sidecars.")
 
 
 

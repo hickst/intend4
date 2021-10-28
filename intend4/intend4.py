@@ -1,7 +1,7 @@
 # Program to insert IntendedFor array in phasediff JSON sidecar files in order
 # to trigger fMRIPrep or QSIPrep to run SDC (Susceptibility Distortion Correction).
 #   Written by: Tom Hicks and Dianne Patterson. 4/21/21.
-#   Last Modified: Update to handle DWI.
+#   Last Modified: Add ability to reset IntendedFor fields.
 #
 import os
 import sys
@@ -81,7 +81,7 @@ def get_image_paths (modality, args, layout, subj_id, session_id=None):
   return [subjrelpath(fyl) for fyl in files]
 
 
-def get_sidecar_and_insert (modality, args, layout, image_paths, subj_id, session_id=None):
+def get_sidecar_and_modify (modality, args, layout, image_paths, subj_id, session_id=None):
   """
   Insert the given image paths into the appropriate sidecar data structure for
   for identified subject (or subject/session). Then rewrite the (modified) sidecar.
@@ -103,7 +103,7 @@ def get_sidecar_and_insert (modality, args, layout, image_paths, subj_id, sessio
     return
   else:
     sidecar = sidecars[0]
-    modified_contents = insert_intended_for(image_paths, sidecar)
+    modified_contents = modify_intended_for(image_paths, sidecar, remove=args.get('remove'))
     rewrite_sidecar(modified_contents, sidecar)
 
 
@@ -112,14 +112,15 @@ def has_session(layout, subj_id):
   return subj_id in layout.get(return_type='id', target='subject', session=layout.get_sessions())
 
 
-def insert_intended_for (image_paths, fieldmap_sidecar):
+def modify_intended_for (image_paths, fieldmap_sidecar, remove=False):
   """
   Modify the sidecar contents dictionary, storing the given image paths under the
   IntendedFor key. If IntendedFor key already exists, its value is replaced by the
-  given image paths. Returns the sidecar contents dictionary, sorted by keywords.
+  given image paths. If remove flag is True, then the value is replaced by an empty list.
+  Returns the sidecar contents dictionary, sorted by keywords.
   """
   contents = fieldmap_sidecar.get_dict()
-  contents['IntendedFor'] = image_paths
+  contents['IntendedFor'] = [] if remove else image_paths
   sorted_dict = dict(sorted(contents.items()))
   return sorted_dict
 
@@ -170,7 +171,7 @@ def update_fieldmap(modality, args, layout, subj_id, session_id=None):
     print(f"Processing subject {subj_id}{sess}")
   image_paths = get_image_paths(modality, args, layout, subj_id, session_id=session_id)
   if (image_paths):
-    get_sidecar_and_insert(modality, args, layout, image_paths, subj_id, session_id=session_id)
+    get_sidecar_and_modify(modality, args, layout, image_paths, subj_id, session_id=session_id)
 
 
 def validate_modality (modality):
