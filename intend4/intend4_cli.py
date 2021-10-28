@@ -1,7 +1,7 @@
 # Program to create IntendedFor array in phasediff JSON sidecar files in order
 # to trigger fMRIPrep to run SDC (Susceptibility Distortion Correction).
 #   Written by: Tom Hicks and Dianne Patterson. 4/21/21.
-#   Last Modified: Continue enhancing: add new arguments, checking, and status messages.
+#   Last Modified: Call top lib method w/ modality. Turn on BIDS validation. Allow dash/underscore flags.
 #
 import argparse
 import os
@@ -60,14 +60,14 @@ def main(argv=None):
   )
 
   parser.add_argument(
-    '--bids_dir', dest='bids_dir',
+    '--bids-dir', '--bids_dir', dest='bids_dir',
     default=argparse.SUPPRESS,
     help=textwrap.dedent("(Optional) Path to BIDS data directory [default: current directory]")
   )
 
   # add optional arguments
   parser.add_argument(
-    '--participant_label', '--participant-label', dest='subj_ids',
+    '--participant-label', '--participant_label', dest='subj_ids',
     nargs='*', default=argparse.SUPPRESS,
     help=textwrap.dedent("(Optional) Space-separated subject number(s) to process [default: process all subjects]")
   )
@@ -93,17 +93,17 @@ def main(argv=None):
     sys.exit('Error: if --participant_label is used, one or more subject numbers must be specified.')
 
   # # For debugging: set verbose and echo input arguments
-  if (args.get('verbose')):
-    print(f"({PROG_NAME}): arguments={args}")
-    print(f"Current directory: {os.getcwd()}")
-    print(f"Python version: {sys.version}")
+  # if (args.get('verbose')):
+  #   print(f"({PROG_NAME}): arguments={args}")
+  #   print(f"Current directory: {os.getcwd()}")
+  #   print(f"Python version: {sys.version}")
 
   if (args.get('verbose')):
     print(f"({PROG_NAME}): Modifying sidecar files for modality '{modality}'.",
       file=sys.stderr)
 
   # do the specified sidecar modifications
-  mod_count = in4.do_subjects(args)
+  mod_count = in4.do_subjects(modality, args)
 
   if (args.get('verbose')):
     print(f"({PROG_NAME}): Modified {mod_count} sidecars.")

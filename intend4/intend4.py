@@ -1,7 +1,7 @@
 # Program to insert IntendedFor array in phasediff JSON sidecar files in order
-# to trigger fMRIPrep to run SDC (Susceptibility Distortion Correction).
+# to trigger fMRIPrep or QSIPrep to run SDC (Susceptibility Distortion Correction).
 #   Written by: Tom Hicks and Dianne Patterson. 4/21/21.
-#   Last Modified: Move get_permission out, add validate_modality.
+#   Last Modified: Update to handle DWI.
 #
 import os
 import sys
@@ -15,21 +15,30 @@ from intend4.file_utils import get_permissions
 
 IMAGE_EXT = ['nii.gz', 'nii']
 PHASEDIFF_SUFFIX = 'phasediff'
+RPE_SUFFIX = 'epi'
 SIDECAR_EXT = 'json'
 SUBJ_DIR_PREFIX = 'sub-'
 
 
-def do_subjects(args):
+def do_subjects(modality, args):
   """
-  Find and modify all phase diff sidecars for the specified (or all) subjects
-  and sessions.
+  For the specified subject (or all subjects), find and modify the fieldmap sidecars
+  which will be used to correct images with the given modality.
   """
   # use the optionally specified BIDS data dir or default to current directory
   bids_dir = args.get('bids_dir', os.getcwd())
 
   # following setting avoids an annoying warning message about deprecated feature
   bids.config.set_option('extension_initial_dot', True)
-  layout = BIDSLayout(bids_dir, validate=False)
+
+  # analyze BIDS data directory but exit if not valid to avoid changing any files
+  sys.tracebacklimit = 0
+  try:
+    layout = BIDSLayout(bids_dir, validate=True)
+  except:
+    raise RuntimeError(
+      f"BIDS validator got an error while processing the BIDS Data directory '{bids_dir}'.")
+
 
   # use the optionally specified list of subjects or default to all subjects
   subj_ids = args.get('subj_ids')
@@ -38,52 +47,64 @@ def do_subjects(args):
   else:
     selected_subjects = layout.get_subjects()
   for subj_id in selected_subjects:
-    do_single_subject(args, layout, subj_id)
+    do_single_subject(modality, args, layout, subj_id)
 
 
-def do_single_subject(args, layout, subj_id):
+def do_single_subject(modality, args, layout, subj_id):
   """
-  Find and modify the phase diff sidecars for a single subject (and optional sessions).
+  For a single subject (and optional sessions), find and modify the fieldmap sidecar
+  which will be used to correct the image with the given modality.
   """
   sessions = sessions_for_subject(layout, subj_id)
   if (sessions):             # if there are sessions in use
     for sess_num in sessions:
-      update_phasediff_fmaps(args, layout, subj_id, session_id=sess_num)
+      update_fieldmap(modality, args, layout, subj_id, session_id=sess_num)
   else:                      # else sessions are not being used
-    update_phasediff_fmaps(args, layout, subj_id)
+    update_fieldmap(modality, args, layout, subj_id)
 
 
-def get_fmri_image_paths (args, layout, subj_id, session_id=None):
+def get_fieldmap_suffix (modality, args):
   """
-  Return a list of fMRI image paths for the given subject (or subject/session).
+  Compute the fieldmap suffix for correcting images of the given modality, allowing
+  for special cases specified by additional arguments (in the future).
   """
-  files = layout.get(subject=subj_id, session=session_id, extension=IMAGE_EXT, suffix='bold')
+  return PHASEDIFF_SUFFIX if (modality == 'bold') else RPE_SUFFIX
+
+
+def get_image_paths (modality, args, layout, subj_id, session_id=None):
+  """
+  Return a list of modality-specific image paths for the given subject (or subject/session).
+  Assumes that the modality argument is the same string used for the BIDS file suffix
+  for that modality.
+  """
+  files = layout.get(subject=subj_id, session=session_id, extension=IMAGE_EXT, suffix=modality)
   return [subjrelpath(fyl) for fyl in files]
 
 
-def get_sidecar_and_insert (args, layout, fmri_image_paths, subj_id, session_id=None):
+def get_sidecar_and_insert (modality, args, layout, image_paths, subj_id, session_id=None):
   """
-  Insert the given fMRI image paths into the appropriate sidecar data structure for
+  Insert the given image paths into the appropriate sidecar data structure for
   for identified subject (or subject/session). Then rewrite the (modified) sidecar.
   Raise an error if more than one sidecar is found per subject (or subject/session).
   """
-  pd_sidecars = layout.get(target='subject', subject=subj_id, session=session_id,
-                           suffix=PHASEDIFF_SUFFIX, extension=SIDECAR_EXT)
-  num_sidecars = len(pd_sidecars)
+  fieldmap_suffix = get_fieldmap_suffix(modality, args)
+  sidecars = layout.get(target='subject', subject=subj_id, session=session_id,
+                        suffix=fieldmap_suffix, extension=SIDECAR_EXT)
+  num_sidecars = len(sidecars)
   if (num_sidecars < 1):
     sess = f" in session {session_id}" if session_id else ''
-    err_msg = f"Error: {PHASEDIFF_SUFFIX} sidecar file is missing for subject {subj_id}{sess}. Skipping..."
+    err_msg = f"Error: {fieldmap_suffix} sidecar file is missing for subject {subj_id}{sess}. Skipping..."
     print(err_msg, file=sys.stderr)
     return
   elif (num_sidecars > 1):
     sess = f" in session {session_id}" if session_id else ''
-    err_msg = f"Error: Found more than 1 {PHASEDIFF_SUFFIX} sidecars for subject {subj_id}{sess}. Skipping..."
+    err_msg = f"Error: Found more than 1 {fieldmap_suffix} sidecars for subject {subj_id}{sess}. Skipping..."
     print(err_msg, file=sys.stderr)
     return
   else:
-    pd_sidecar = pd_sidecars[0]
-    modified_sidecar = insert_intended_for(args, fmri_image_paths, pd_sidecar)
-    write_intended_for(args, modified_sidecar, pd_sidecar)
+    sidecar = sidecars[0]
+    modified_contents = insert_intended_for(image_paths, sidecar)
+    rewrite_sidecar(modified_contents, sidecar)
 
 
 def has_session(layout, subj_id):
@@ -91,16 +112,15 @@ def has_session(layout, subj_id):
   return subj_id in layout.get(return_type='id', target='subject', session=layout.get_sessions())
 
 
-def insert_intended_for (args, fmri_image_paths, pd_sidecar):
+def insert_intended_for (image_paths, fieldmap_sidecar):
   """
-  Modify the sidecar data structure, storing the fMRI image paths under
-  the IntendedFor key. If IntendedFor key already exists, its contents
-  are replaced by the given fMRI image paths.
-  Returns the sidecar data structure sorted by keywords.
+  Modify the sidecar contents dictionary, storing the given image paths under the
+  IntendedFor key. If IntendedFor key already exists, its value is replaced by the
+  given image paths. Returns the sidecar contents dictionary, sorted by keywords.
   """
-  pd_dict = pd_sidecar.get_dict()
-  pd_dict['IntendedFor'] = fmri_image_paths
-  sorted_dict = dict(sorted(pd_dict.items()))
+  contents = fieldmap_sidecar.get_dict()
+  contents['IntendedFor'] = image_paths
+  sorted_dict = dict(sorted(contents.items()))
   return sorted_dict
 
 
@@ -140,17 +160,17 @@ def subjrelpath(bids_file_object):
     return None
 
 
-def update_phasediff_fmaps(args, layout, subj_id, session_id=None):
+def update_fieldmap(modality, args, layout, subj_id, session_id=None):
   """
-  Get paths to all fMRI images for the given subject (or subject/session)
+  Get paths to all images for the given subject (or subject/session) with the given modality,
   and insert them in the appropriate sidecar.
   """
   if (args.get('verbose')):
     sess = f" in session {session_id}" if session_id else ''
     print(f"Processing subject {subj_id}{sess}")
-  fmri_image_paths = get_fmri_image_paths(args, layout, subj_id, session_id=session_id)
-  if (fmri_image_paths):
-    get_sidecar_and_insert(args, layout, fmri_image_paths, subj_id, session_id=session_id)
+  image_paths = get_image_paths(modality, args, layout, subj_id, session_id=session_id)
+  if (image_paths):
+    get_sidecar_and_insert(modality, args, layout, image_paths, subj_id, session_id=session_id)
 
 
 def validate_modality (modality):
@@ -165,9 +185,9 @@ def validate_modality (modality):
   raise ValueError(f"Modality argument must be one of: {ALLOWED_MODALITIES}")
 
 
-def write_intended_for (args, intended_for_dict, pd_sidecar):
-  "Convert intended_for dictionary to JSON and write it back to the sidecar file."
-  permissions = get_permissions(pd_sidecar)   # get current file permissions
-  os.chmod(pd_sidecar, 0o0640)                # make file writable
-  output_JSON(intended_for_dict, file_path=pd_sidecar.path)
-  os.chmod(pd_sidecar, permissions)           # restore original file permissions
+def rewrite_sidecar (modified_contents, sidecar):
+  "Convert the contents dictionary to JSON and write it back to the sidecar file."
+  permissions = get_permissions(sidecar)   # get current file permissions
+  os.chmod(sidecar, 0o0640)                # make file writable
+  output_JSON(modified_contents, file_path=sidecar.path)
+  os.chmod(sidecar, permissions)           # restore original file permissions
