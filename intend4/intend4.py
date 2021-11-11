@@ -1,7 +1,7 @@
 # Program to insert IntendedFor array in phasediff JSON sidecar files in order
 # to trigger fMRIPrep or QSIPrep to run SDC (Susceptibility Distortion Correction).
 #   Written by: Tom Hicks and Dianne Patterson. 4/21/21.
-#   Last Modified: Return count of modified sidecars. Enhanced processing status message.
+#   Last Modified: Dont make children extract from BIDS layout structure.
 #
 import os
 import sys
@@ -109,8 +109,8 @@ def get_sidecar_and_modify (modality, args, layout, image_paths, subj_id, sessio
     return
   else:
     sidecar = sidecars[0]
-    modified_contents = modify_intended_for(image_paths, sidecar, remove=args.get('remove'))
-    rewrite_sidecar(modified_contents, sidecar)
+    modified_contents = modify_intended_for(image_paths, sidecar.get_dict(), remove=args.get('remove'))
+    rewrite_sidecar(modified_contents, sidecar.path)
 
 
 def has_session(layout, subj_id):
@@ -118,14 +118,13 @@ def has_session(layout, subj_id):
   return subj_id in layout.get(return_type='id', target='subject', session=layout.get_sessions())
 
 
-def modify_intended_for (image_paths, fieldmap_sidecar, remove=False):
+def modify_intended_for (image_paths, contents, remove=False):
   """
-  Modify the sidecar contents dictionary, storing the given image paths under the
+  Modify the given contents dictionary, storing the given image paths under the
   IntendedFor key. If IntendedFor key already exists, its value is replaced by the
   given image paths. If remove flag is True, then the value is replaced by an empty list.
   Returns the sidecar contents dictionary, sorted by keywords.
   """
-  contents = fieldmap_sidecar.get_dict()
   contents['IntendedFor'] = [] if remove else image_paths
   sorted_dict = dict(sorted(contents.items()))
   return sorted_dict
@@ -144,6 +143,14 @@ def output_JSON (data, file_path=None, **json_keywords):
     json.dump(data, outfile, indent=2, **json_keywords)
     outfile.write('\n')
     outfile.close()
+
+
+def rewrite_sidecar (modified_contents, sidecar):
+  "Convert the contents dictionary to JSON and write it back to the sidecar file."
+  permissions = get_permissions(sidecar)   # get current file permissions
+  os.chmod(sidecar, 0o0640)                # make file writable
+  output_JSON(modified_contents, file_path=sidecar)
+  os.chmod(sidecar, permissions)           # restore original file permissions
 
 
 def sessions_for_subject(layout, subj_id):
@@ -192,11 +199,3 @@ def validate_modality (modality):
   if (modality in ALLOWED_MODALITIES):
     return modality
   raise ValueError(f"Modality argument must be one of: {ALLOWED_MODALITIES}")
-
-
-def rewrite_sidecar (modified_contents, sidecar):
-  "Convert the contents dictionary to JSON and write it back to the sidecar file."
-  permissions = get_permissions(sidecar)   # get current file permissions
-  os.chmod(sidecar, 0o0640)                # make file writable
-  output_JSON(modified_contents, file_path=sidecar.path)
-  os.chmod(sidecar, permissions)           # restore original file permissions
