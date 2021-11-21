@@ -1,7 +1,7 @@
 # Program to insert IntendedFor array in phasediff JSON sidecar files in order
 # to trigger fMRIPrep or QSIPrep to run SDC (Susceptibility Distortion Correction).
 #   Written by: Tom Hicks and Dianne Patterson. 4/21/21.
-#   Last Modified: Dont make children extract from BIDS layout structure.
+#   Last Modified: More dont make children extract from BIDS layout structure.
 #
 import os
 import sys
@@ -83,8 +83,9 @@ def get_image_paths (modality, args, layout, subj_id, session_id=None):
   Assumes that the modality argument is the same string used for the BIDS file suffix
   for that modality.
   """
-  files = layout.get(subject=subj_id, session=session_id, extension=IMAGE_EXT, suffix=modality)
-  return [subjrelpath(fyl) for fyl in files]
+  bids_file_objects = layout.get(subject=subj_id, session=session_id,
+                                 extension=IMAGE_EXT, suffix=modality)
+  return [subjrelpath(bids_file_object.relpath) for bids_file_object in bids_file_objects]
 
 
 def get_sidecar_and_modify (modality, args, layout, image_paths, subj_id, session_id=None):
@@ -158,18 +159,17 @@ def sessions_for_subject(layout, subj_id):
   return layout.get(return_type='id', target='session', subject=subj_id)
 
 
-def subjrelpath(bids_file_object):
+def subjrelpath (subjpath):
   """
-  Return the subject-relative path for the given BIDSFile or None if the
-  given file is not a relative to any subject.
+  Return the subject-relative path for the given filepath string or None if the
+  given filepath is not relative to any subject.
   """
-  relpath = bids_file_object.relpath
-  if (relpath.startswith(SUBJ_DIR_PREFIX)):
-    ndx = relpath.find('/')
+  if (subjpath.startswith(SUBJ_DIR_PREFIX)):
+    ndx = subjpath.find('/')
     if (ndx != -1):
-      return relpath[ndx+1:]
+      return subjpath[ndx+1:]
     else:
-      raise TypeError(f"Error: Unable to remove subject prefix from {relpath}: no '/' found.")
+      raise TypeError(f"Error: Unable to remove subject prefix from {subjpath}: no '/' found.")
   else:                                # given file is not relative to a subject directory
     return None
 
