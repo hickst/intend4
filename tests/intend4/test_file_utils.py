@@ -1,13 +1,13 @@
 # Tests for the file utilities module.
 #   Written by: Tom Hicks. 5/22/2020.
-#   Last Modified: Ported from QMTools project.
+#   Last Modified: Move test_get_permissions to here.
 #
 import os
 import tempfile
 from pathlib import Path
 
 import intend4.file_utils as utils
-from tests import TEST_RESOURCES_DIR
+from tests import TEST_DATA_DIR, TEST_RESOURCES_DIR
 
 
 class TestFileUtils(object):
@@ -18,8 +18,9 @@ class TestFileUtils(object):
   fylPath = '/tmp/HiGhLy_UnLiKeLy'
   fylLink = '/tmp/linkToHiGhLy_UnLiKeLy'
 
-  empty_test_fyl     = f"{TEST_RESOURCES_DIR}/empty.txt"
-  bold_test_fyl = f"{TEST_RESOURCES_DIR}/bold_test.tsv"
+  dsdescr_fyl    = f"{TEST_DATA_DIR}/dataset_description.json"
+  empty_test_fyl = f"{TEST_RESOURCES_DIR}/empty.txt"
+  bold_test_fyl  = f"{TEST_RESOURCES_DIR}/bold_test.tsv"
 
 
   def test_copy_tree(self):
@@ -65,6 +66,14 @@ class TestFileUtils(object):
 
     paths = [ p for p in utils.gen_file_paths(self.fylPath) ]
     assert len(paths) == 0, "The generated path list for non-existant directory is empty."
+
+
+  def test_get_permissions(self):
+    perms = utils.get_permissions(self.dsdescr_fyl)
+    print(perms)
+    assert perms is not None
+    assert type(perms) == int
+    assert perms == 33188
 
 
   def test_good_dir_path(self):
