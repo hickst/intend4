@@ -1,13 +1,15 @@
 # Tests of the IntendedFor module.
 #   Written by: Tom Hicks and Dianne Patterson. 10/19/2021.
-#   Last Modified: Move test_get_permissions out of here.
+#   Last Modified: Add tests for get_sidecar_and_modify.
 #
 import os
 import pytest
 import tempfile
 
-# from tests import TEST_DATA_DIR
+from bids import BIDSLayout
 import intend4.intend4 as in4
+
+from tests import TEST_RESOURCES_DIR
 
 
 @pytest.fixture
@@ -18,47 +20,112 @@ def popdir(request):
 
 class TestIntend4(object):
 
+  bids_test_dir = f"{TEST_RESOURCES_DIR}/data"
+  bads_test_dir = f"{TEST_RESOURCES_DIR}/baddata"
+
   contents = { "contents": "fake JSON contents" }
   # dsdescr_fyl = f"{TEST_DATA_DIR}/dataset_description.json"
 
 
-  def test_get_sidecar_and_modify(self):
+  def test_do_single_subject_no_sess(self):
     """
-    DP test 96-113...TO DO.  See test_fetcher for example of pytest fixture JSON dictionary
+    60,66-69: If there are no sessions
+    Not sure what type sessions is...some kind of bids_layout object?
     """
-    pass
+    assert False
+
+
+  def test_do_single_subject_sess(self):
+    """
+    60-65: There are two conditions to test: if there are sessions
+    Not sure what type sessions is...some kind of bids_layout object?
+    """
+    assert False
+
+
+  def test_get_fieldmap_suffix(self):
+    assert in4.get_fieldmap_suffix('bold') == "phasediff"
+    assert in4.get_fieldmap_suffix('dwi') == "epi"
+
+
+  def test_get_image_paths(self):
+    """
+    86-88: Get image paths out of bids_layout yuck
+    """
+    assert False
+
+
+  def test_get_sidecar_and_modify_lt1(self, capsys):
+    """
+    There are 3 conditions to test: if num_sidecars < 1 => error; if num_sidecars > 1 => error;
+    else there is one sidecar and it works.
+    """
+    testlayout = BIDSLayout(self.bids_test_dir, validate=True)
+    in4.get_sidecar_and_modify('bold', {}, testlayout, [], '666')
+    _, syserr = capsys.readouterr()
+    print(f"CAPTURED SYS.ERR:\n{syserr}")
+    assert 'sidecar file is missing for subject 666' in syserr
+
+
+  def test_get_sidecar_and_modify_gt1(self, capsys):
+    """
+    There are 3 conditions to test: if num_sidecars < 1 => error; if num_sidecars > 1 => error;
+    else there is one sidecar and it works.
+    """
+    testlayout = BIDSLayout(self.bads_test_dir, validate=True)
+    in4.get_sidecar_and_modify('bold', {}, testlayout, [], '188')
+    _, syserr = capsys.readouterr()
+    print(f"CAPTURED SYS.ERR:\n{syserr}")
+    assert 'Found more than 1' in syserr
+    assert 'sidecars for subject 188' in syserr
+
+
+  def test_get_sidecar_and_modify_eq1(self, capsys, popdir):
+    """
+    There are 3 conditions to test: if num_sidecars < 1 => error; if num_sidecars > 1 => error;
+    else there is one sidecar and it works.
+    """
+    with tempfile.TemporaryDirectory() as tmpdir:
+      print(f"tmpdir={tmpdir}")
+      os.system(f"cp -Rp {self.bids_test_dir} {tmpdir}")
+      os.chdir(tmpdir)
+      testlayout = BIDSLayout(os.path.join(tmpdir, 'data'), validate=True)
+      in4.get_sidecar_and_modify('bold', {}, testlayout, [], '188')
+      _, syserr = capsys.readouterr()
+      print(f"CAPTURED SYS.ERR:\n{syserr}")
+      assert syserr == ''
 
 
   def test_has_session_false(self):
     """
-    DP test: 118: Return false if the subject has no sessions (e.g. resources/data/sub-188)
+    DP test: 119: Return false if the subject has no sessions (e.g. resources/data/sub-188)
     subj = 'resources/data/sub-188'
     subj_id = in4.has_session(self.subj)
     """
-    pass
+    assert False
 
 
   def test_has_session_true(self):
     """
-    DP test: 118: Return true if the subject has sessions e.g., resources/data/sub-219: ses-ctbs & ses-itbs
+    DP test: 119: Return true if the subject has sessions e.g., resources/data/sub-219: ses-ctbs & ses-itbs
     subj = 'resources/data/sub-219'
     subj_id = in4.has_session(self.subj)
     """
-    pass
+    assert False
 
 
   def test_modify_intended_for_add(self):
     """
-    DP test 128-130: I think we need a fixture which is a dictionary. See test_fetcher for example of pytest fixture JSON dictionary. After running this, one of two things will happen: the sorted dictionary will be returned with the added IntendedFor field (as in this test) OR with the contents of that field removed (next test)
+    DP test 129-131: I think we need a fixture which is a dictionary. See test_fetcher for example of pytest fixture JSON dictionary. After running this, one of two things will happen: the sorted dictionary will be returned with the added IntendedFor field (as in this test) OR with the contents of that field removed (next test)
     """
-    pass
+    assert False
 
   def test_modify_intended_for_rm(self):
     """
-    # DP test 128-130: Return sorted dictionary with IntendedFor field contents removed
+    # DP test 129-131: Return sorted dictionary with IntendedFor field contents removed
     remove=in4.modify_intended_for(self.remove=True)
     """
-    pass
+    assert False
 
 
   def test_rewrite_sidecar(self):
@@ -99,23 +166,23 @@ class TestIntend4(object):
 
   def test_sessions_for_subject_nosess(self):
     """
-    DP test 158: this function gets the session ID (if any) out of the bids layout object, given the subject id.  The problem is creating or faking the bids layout object??
+    DP test 159: this function gets the session ID (if any) out of the bids layout object, given the subject id.  The problem is creating or faking the bids layout object??
       a subject without sessions: resources/data/sub-188.
       subj_nosess = '188' # I don't recall whether we need sub-188 or 188 for the subj_id
       subj_id = in4.sessions_for_subject(self.subj_nosess)
     """
-    pass
+    assert False
 
 
   def test_sessions_for_subject_sess(self):
     """
-    DP test 158: this function gets the session ID (if any) out of the bids layout object, given the subject id.  The problem is creating or faking the bids layout object??
+    DP test 159: this function gets the session ID (if any) out of the bids layout object, given the subject id.  The problem is creating or faking the bids layout object??
       It should probably be tested against:
       a subject with sessions: resources/data/sub-219/ses-ctbs and ses-itbs
       subj_sess = '219' # I don't recall whether we need sub-219 or 219 for the subj_id
       subj_id = in4.sessions_for_subject(self.subj_sess)
     """
-    pass
+    assert False
 
 
   def test_subjrelpath_good(self):
@@ -149,7 +216,7 @@ class TestIntend4(object):
 
     I think there is a reason we skipped this one: It mostly calls other functions
     """
-    pass
+    assert False
 
 
   def test_validate_modality_good(self):
