@@ -1,6 +1,6 @@
 # Tests of the IntendedFor module.
 #   Written by: Tom Hicks and Dianne Patterson. 10/19/2021.
-#   Last Modified: Add tests for get_sidecar_and_modify.
+#   Last Modified: Add test for test_do_subjects, tests for has_session.
 #
 import os
 import pytest
@@ -25,6 +25,14 @@ class TestIntend4(object):
 
   contents = { "contents": "fake JSON contents" }
   # dsdescr_fyl = f"{TEST_DATA_DIR}/dataset_description.json"
+
+  def test_do_subjects_badbids(self, popdir):
+    with tempfile.TemporaryDirectory() as tmpdir:
+      print(f"tmpdir={tmpdir}")
+      os.chdir(tmpdir)
+      with pytest.raises(RuntimeError) as rte:
+        in4.do_subjects('bold', {'bids_dir': tmpdir})
+      assert 'BIDS validator got an error while processing the BIDS Data directory' in str(rte)
 
 
   def test_do_single_subject_no_sess(self):
@@ -96,22 +104,10 @@ class TestIntend4(object):
       assert syserr == ''
 
 
-  def test_has_session_false(self):
-    """
-    DP test: 119: Return false if the subject has no sessions (e.g. resources/data/sub-188)
-    subj = 'resources/data/sub-188'
-    subj_id = in4.has_session(self.subj)
-    """
-    assert False
-
-
-  def test_has_session_true(self):
-    """
-    DP test: 119: Return true if the subject has sessions e.g., resources/data/sub-219: ses-ctbs & ses-itbs
-    subj = 'resources/data/sub-219'
-    subj_id = in4.has_session(self.subj)
-    """
-    assert False
+  def test_has_session(self):
+    testlayout = BIDSLayout(self.bids_test_dir, validate=True)
+    in4.has_session(testlayout, '219') is True
+    in4.has_session(testlayout, '078') is False
 
 
   def test_modify_intended_for_add(self):

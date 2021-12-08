@@ -1,6 +1,6 @@
 # Tests of the IntendedFor CLI module.
 #   Written by: Tom Hicks and Dianne Patterson. 12/7/2021.
-#   Last Modified: Initial creation: complete coverage.
+#   Last Modified: Minor reindent.
 #
 import os
 import pytest
@@ -74,13 +74,13 @@ class TestIntend4CLI(object):
 
 
   def test_main_noargs(self, capsys, clear_argv):
-      with pytest.raises(SystemExit) as se:
-        cli.main()
-      assert se.value.code == SYSEXIT_ERROR_CODE
-      sysout, syserr = capsys.readouterr()
-      print(f"CAPTURED SYS.OUT:\n{sysout}")
-      print(f"CAPTURED SYS.ERR:\n{syserr}")
-      assert f"usage: {cli.PROG_NAME}" in syserr
+    with pytest.raises(SystemExit) as se:
+      cli.main()
+    assert se.value.code == SYSEXIT_ERROR_CODE
+    sysout, syserr = capsys.readouterr()
+    print(f"CAPTURED SYS.OUT:\n{sysout}")
+    print(f"CAPTURED SYS.ERR:\n{syserr}")
+    assert f"usage: {cli.PROG_NAME}" in syserr
 
 
   def test_main_help(self, capsys, clear_argv):
@@ -106,13 +106,13 @@ class TestIntend4CLI(object):
 
 
   def test_main_verbose(self, capsys, clear_argv, popdir):
-      with tempfile.TemporaryDirectory() as tmpdir:
-        print(f"tmpdir={tmpdir}")
-        os.system(f"cp -Rp {self.bids_test_dir} {tmpdir}")
-        os.chdir(tmpdir)
-        sys.argv = ['intend4', '-v', 'bold', '--bids-dir', os.path.join(tmpdir, 'data'), '--participant-label', '188']
-        cli.main()
-        sysout, syserr = capsys.readouterr()
-        print(f"CAPTURED SYS.ERR:\n{syserr}")
-        assert "IntendedFor field in sidecar files for modality 'bold'" in syserr
-        assert 'IntendedFor fields in' in syserr
+    with tempfile.TemporaryDirectory() as tmpdir:
+      print(f"tmpdir={tmpdir}")
+      os.system(f"cp -Rp {self.bids_test_dir} {tmpdir}")
+      os.chdir(tmpdir)
+      sys.argv = ['intend4', '-v', 'bold', '--bids-dir', os.path.join(tmpdir, 'data'), '--participant-label', '188']
+      cli.main()
+      sysout, syserr = capsys.readouterr()
+      print(f"CAPTURED SYS.ERR:\n{syserr}")
+      assert "IntendedFor field in sidecar files for modality 'bold'" in syserr
+      assert 'IntendedFor fields in' in syserr
