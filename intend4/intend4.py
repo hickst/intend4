@@ -1,7 +1,7 @@
 # Program to insert IntendedFor array in phasediff JSON sidecar files in order
 # to trigger fMRIPrep or QSIPrep to run SDC (Susceptibility Distortion Correction).
 #   Written by: Tom Hicks and Dianne Patterson. 4/21/21.
-#   Last Modified: More dont make children extract from BIDS layout structure.
+#   Last Modified: Update default BIDS directory.
 #
 import os
 import sys
@@ -9,7 +9,7 @@ import bids
 import json
 from bids import BIDSLayout
 
-from intend4 import ALLOWED_MODALITIES
+from intend4 import ALLOWED_MODALITIES, BIDS_DIR
 from intend4.file_utils import get_permissions
 
 
@@ -26,7 +26,7 @@ def do_subjects(modality, args):
   which will be used to correct images with the given modality.
   """
   # use the optionally specified BIDS data dir or default to current directory
-  bids_dir = args.get('bids_dir', os.getcwd())
+  bids_dir = args.get('bids_dir', BIDS_DIR)
 
   # following setting avoids an annoying warning message about deprecated feature
   bids.config.set_option('extension_initial_dot', True)
@@ -37,7 +37,7 @@ def do_subjects(modality, args):
     layout = BIDSLayout(bids_dir, validate=True)
   except:
     raise RuntimeError(
-      f"BIDS validator got an error while processing the BIDS Data directory '{bids_dir}'.")
+      f"BIDS validator got an error while processing the BIDS Data directory.")
 
   # use the optionally specified list of subjects or default to all subjects
   subj_ids = args.get('subj_ids')

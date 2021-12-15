@@ -1,16 +1,17 @@
 # Tests of the IntendedFor CLI module.
 #   Written by: Tom Hicks and Dianne Patterson. 12/7/2021.
-#   Last Modified: Minor reindent.
+#   Last Modified: Update and enhance tests for default BIDS directory.
 #
 import os
 import pytest
 import sys
 import tempfile
 
-# from tests import TEST_DATA_DIR
 from tests import TEST_RESOURCES_DIR
+from intend4 import BIDS_DIR
 import intend4.intend4_cli as cli
 
+DATA_SUBDIR = 'data'                   # subdirectory name for data root dir in temp directories
 SYSEXIT_ERROR_CODE = 2                 # seems to be error exit code from argparse
 
 
@@ -27,28 +28,30 @@ def popdir(request):
 
 class TestIntend4CLI(object):
 
-  bids_test_dir = f"{TEST_RESOURCES_DIR}/data"
+  bids_test_dir = os.path.join(TEST_RESOURCES_DIR, DATA_SUBDIR)
 
   def test_check_bids_dir(self, capsys):
     """
     Check that the bids dir is writeable
     """
-    with tempfile.TemporaryDirectory() as tmpdir:
-      print(f"tmpdir={tmpdir}")
+    if (os.environ.get('RUNNING_IN_CONTAINER') is None):
+      with tempfile.TemporaryDirectory() as tmpdir:
+        print(f"tmpdir={tmpdir}")
 
-      # change permissions on directory to readonly
-      os.chmod(tmpdir, 0o0444)
-      print(f"NOWRITE_PERM={os.stat(tmpdir).st_mode}")
+        # change permissions on directory to readonly
+        os.chmod(tmpdir, 0o0444)
+        print(f"NOWRITE_PERM={os.stat(tmpdir).st_mode}")
 
-      # test method with non-writeable dir and check for error
-      with pytest.raises(SystemExit) as se:
-        cli.check_bids_dir('TEST', tmpdir)
+        # test method with non-writeable dir and check for error
+        with pytest.raises(SystemExit) as se:
+          cli.check_bids_dir('TEST', tmpdir)
 
-      assert se.value.code == cli.BIDS_DIR_EXIT_CODE
-      sysout, syserr = capsys.readouterr()
-      print(f"CAPTURED SYS.OUT:\n{sysout}")
-      print(f"CAPTURED SYS.ERR:\n{syserr}")
-      assert 'A writeable BIDS data directory must be specified' in syserr
+        assert se.value.code == cli.BIDS_DIR_EXIT_CODE
+        _, syserr = capsys.readouterr()
+        print(f"CAPTURED SYS.ERR:\n{syserr}")
+        assert 'A writeable BIDS data directory must be specified' in syserr
+    else:
+      assert True
 
 
   def test_main_no_modality(self, capsys, clear_argv):
@@ -105,12 +108,59 @@ class TestIntend4CLI(object):
     assert f"one or more subject numbers must be specified" in syserr
 
 
+  def test_main_badbidsdir(self, capsys, clear_argv, popdir):
+    """
+    Invalid but writeable BIDS_DIR specified => bids validator error.
+    """
+    with tempfile.TemporaryDirectory() as tmpdir:
+      print(f"tmpdir={tmpdir}")
+      # copy of data omitted: not valid BIDS directory
+      os.chdir(tmpdir)
+      sys.argv = ['intend4', '-v', 'bold', '--bids-dir', tmpdir, '--participant-label', '188']
+      with pytest.raises(RuntimeError) as rte:
+        cli.main()
+      assert 'BIDS validator got an error while processing the BIDS Data directory' in str(rte)
+
+
+  def test_main_nobidsdir(self, capsys, clear_argv):
+    """
+    Default BIDS_DIR and not in container => fail with writeable error.
+    """
+    if (os.environ.get('RUNNING_IN_CONTAINER') is None):
+      sys.argv = ['intend4', '-v', 'bold', '--participant-label', '188']
+      with pytest.raises(SystemExit) as se:
+        cli.main()
+      assert se.value.code == cli.BIDS_DIR_EXIT_CODE
+      sysout, syserr = capsys.readouterr()
+      print(f"CAPTURED SYS.ERR:\n{syserr}")
+      assert 'A writeable BIDS data directory must be specified' in syserr
+    else:
+      assert True
+
+
+  def test_main_defaultbidsdir(self, capsys, clear_argv):
+    """
+    Default BIDS_DIR and in container => success.
+    """
+    if (os.environ.get('RUNNING_IN_CONTAINER') is not None):
+      os.system(f"cp -Rp {self.bids_test_dir}/* {BIDS_DIR}")
+      sys.argv = ['intend4', '-v', 'bold', '--participant-label', '188']
+      cli.main()
+      # os.system(f"rm -rf {BIDS_DIR}")  # clean up
+      sysout, syserr = capsys.readouterr()
+      print(f"CAPTURED SYS.ERR:\n{syserr}")
+      assert "IntendedFor field in sidecar files for modality 'bold'" in syserr
+      assert 'IntendedFor fields in' in syserr
+    else:
+      assert True
+
+
   def test_main_verbose(self, capsys, clear_argv, popdir):
     with tempfile.TemporaryDirectory() as tmpdir:
       print(f"tmpdir={tmpdir}")
       os.system(f"cp -Rp {self.bids_test_dir} {tmpdir}")
       os.chdir(tmpdir)
-      sys.argv = ['intend4', '-v', 'bold', '--bids-dir', os.path.join(tmpdir, 'data'), '--participant-label', '188']
+      sys.argv = ['intend4', '-v', 'bold', '--bids-dir', os.path.join(tmpdir, DATA_SUBDIR), '--participant-label', '188']
       cli.main()
       sysout, syserr = capsys.readouterr()
       print(f"CAPTURED SYS.ERR:\n{syserr}")

@@ -1,7 +1,7 @@
 # Program to create IntendedFor array in phasediff JSON sidecar files in order
 # to trigger fMRIPrep to run SDC (Susceptibility Distortion Correction).
 #   Written by: Tom Hicks and Dianne Patterson. 4/21/21.
-#   Last Modified: Add/use check_subj_nums.
+#   Last Modified: Update default BIDS directory.
 #
 import argparse
 import os
@@ -9,7 +9,7 @@ import sys
 import textwrap
 
 import intend4.intend4 as in4
-from intend4 import ALLOWED_MODALITIES
+from intend4 import ALLOWED_MODALITIES, BIDS_DIR
 from intend4.file_utils import good_dir_path
 
 
@@ -73,13 +73,13 @@ def main(argv=None):
     help=f"Modality of the image files. Must be one of: {ALLOWED_MODALITIES}"
   )
 
+  # add optional arguments
   parser.add_argument(
     '--bids-dir', '--bids_dir', dest='bids_dir',
     default=argparse.SUPPRESS,
     help=textwrap.dedent("(Optional) Path to BIDS data directory [default: current directory]")
   )
 
-  # add optional arguments
   parser.add_argument(
     '--participant-label', '--participant_label', dest='subj_ids',
     nargs='*', default=argparse.SUPPRESS,
@@ -99,7 +99,7 @@ def main(argv=None):
   modality = in4.validate_modality(args.get('modality'))
 
   # check that the given BIDS dir exists and is writeable
-  bids_dir = args.get('bids_dir', os.getcwd())
+  bids_dir = args.get('bids_dir', BIDS_DIR)
   check_bids_dir(PROG_NAME, bids_dir)
 
   snums = args.get('subj_ids')
