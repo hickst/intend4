@@ -26,6 +26,8 @@ You must have Docker installed and working on your machine to use this project. 
 
   `wget https://bitbucket.org/dpat/neuro4rii/raw/main/bash_scripts/intend4.sh`
 
+  (If wget does not work for you, then put the address https://bitbucket.org/dpat/neuro4rii/raw/main/bash_scripts/intend4.sh into your browser and right-click to save a copy of the script )
+
   Ensure it is executable and in your path.
 
 - Download the dataset: [BIDS_DATA.zip](https://bitbucket.org/dpat/neuro4rii/src/main/data/BIDS_MRI.zip): Choose *Open raw* under the `...` on the right and the file should download.  It includes 5 subjects, using the BIDS file structure, all with *dwi*, *fmap*, and *func* directories, but the image files are empty so the dataset is tiny (~100 Kb). 
