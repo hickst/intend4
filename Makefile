@@ -60,7 +60,7 @@ run:
 	@docker run -it --rm --name ${NAME} -v ${BIDS_DIR}:/data ${IMG} --verbose ${ARGS}
 
 runtc:
-	docker run -it --rm --name ${NAME} -v ${TEST_DATA_DIR}:/data --entrypoint pytest ${TSTIMG} -vv --cov-report term-missing --cov=${SCOPE}
+	docker run -it --rm --name ${NAME} --entrypoint pytest ${TSTIMG} -vv --cov-report term-missing --cov=${SCOPE}
 
 stop:
 	docker stop ${NAME}
