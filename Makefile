@@ -42,6 +42,7 @@ cc: cleancache
 
 cleancache:
 	find . -name __pycache__ -print | grep -v .venv | xargs rm -rf
+	find . -name .pytest_cache -print | grep -v .venv | xargs rm -rf
 
 cleanwork:
 	@rm -rf ${TEST_DATA_DIR}
