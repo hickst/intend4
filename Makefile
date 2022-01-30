@@ -38,6 +38,8 @@ help:
 bash:
 	docker run -it --rm --name ${NAME} -v ${BIDS_DIR}:/data --entrypoint ${SHELL} ${TSTIMG} ${ARGS}
 
+cc: cleancache
+
 cleancache:
 	find . -name __pycache__ -print | grep -v .venv | xargs rm -rf
 
