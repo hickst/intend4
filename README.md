@@ -22,7 +22,7 @@ You must have Docker (or Apptainer) installed and working on your machine to use
 
 ### **Step 1**: Download Intend4 Script and Test Data
 
-- To run Intend4 with the **Docker** script, download the `intend4.sh` bash script file:
+- To run Intend4 using **Docker**, download the `intend4.sh` bash script file:
 
   `wget https://github.com/hickst/intend4/raw/main/intend4.sh`
 
@@ -30,24 +30,30 @@ You must have Docker (or Apptainer) installed and working on your machine to use
 
   Ensure it is executable and in your path.
 
-- To run Intend4 with the **Apptainer** script, download the `intend4_hpc.sh` bash script file:
+- To run Intend4 using **Apptainer**, download the `intend4_hpc.sh` bash script file:
 
    `wget https://github.com/hickst/intend4/raw/main/intend4_hpc.sh`
 
+  (If wget does not work for you, then put the address  https://raw.githubusercontent.com/hickst/intend4/main/intend4_hpc.sh into your browser and right-click to save a copy of the script )
+
    Substitute `intend4_hpc.sh` for `intend4.sh` anywhere the documentation and examples refer to `intend4.sh`.
 
-- Download the dataset: [BIDS_MRI.zip](https://bitbucket.org/dpat/neuro4rii/src/main/data/BIDS_MRI.zip): Choose `Open raw` under the `...` on the right and the file should download.  It includes 5 subjects, using the BIDS file structure, all with *dwi*, *fmap*, and *func* directories, but the image files are empty so the dataset is tiny (~100 Kb).
+- To download the test dataset `BIDS_MRI.zip`:
+  - Select this link for [the BIDS_MRI.zip file](https://bitbucket.org/dpat/neuro4rii/src/main/data/BIDS_MRI.zip):
+  - Choose `Open raw` under the `...` on the right and the file should download.
+
+  The `BIDS_MRI.zip` file includes 5 subjects, using the BIDS file structure, all with *dwi*, *fmap*, and *func* directories, but the image files are empty so the dataset is tiny (~100 Kb).
 
 - Alternatively, you can use `wget` to retrieve the zip file:
 
   `wget https://bitbucket.org/dpat/neuro4rii/raw/main/data/BIDS_MRI.zip`
 
-- Unzip the BIDS_MRI.zip file and navigate to the BIDS_MRI/data directory.
+- Unzip the `BIDS_MRI.zip` file and navigate to the `BIDS_MRI/data` directory.
 
 ### **Step 2**: Learn to Run the **Intend4** container on Test Data
 
 - The script assumes you are running from your **BIDS data directory**!
-  This is the directory where your NIfTI BIDS data and the dataset_description.json reside.
+  This is the directory where your NIfTI BIDS data and the `dataset_description.json` reside.
 
 ```
 BIDS_MRI
@@ -60,8 +66,8 @@ BIDS_MRI
 ```
 
 - If you have not yet pulled the `hickst/intend4` Docker container, the Docker script will do that the first time you run it.
-- If you use `--participant-label`, subject numbers are specified with the number only!
-  For example, `sub-078` would be specified as `078`.
+- If you use `--participant-label`, subject numbers are specified by the number only!
+  - For example, `sub-078` would be specified as `078`.
 
 - By default, the `intend4.sh` script runs in **verbose** mode to provide maximal information.
 
@@ -146,7 +152,7 @@ The values for `IntendedFor` have been removed:
  "IntendedFor": [],
 ```
 
-**Example 3**: Modify the Reverse Phase encoded image JSON file (fmap/*.epi) for all subjects:
+**Example 3**: Modify the Reverse Phase encoded image JSON file (`fmap/*.epi`) for all subjects:
 
 ```bash
 intend4.sh dwi
@@ -197,7 +203,7 @@ Error: phasediff sidecar file is missing for subject 221. Skipping...
 (intend4): Modified IntendedFor fields in 5 phasediff sidecars.
 ```
 
-**Note**: Intend4 alerts you to the missing phasediff image for sub-221!
+_**Note**: Intend4 alerts you to the missing phasediff image for sub-221!_
 
 ### Getting Usage Help
 
