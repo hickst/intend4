@@ -11,23 +11,23 @@ PROG=$0
 export SIF=${SIF:-/contrib/singularity/shared/neuroimaging}
 
 help () {
-	echo ""
-	echo "This script calls the 'intend4' apptainer container."
-	echo "Run it in an interactive session and from the bids data directory containing your subjects."
-	echo "Modality is the only required argument: specify 'bold' or 'dwi'."
-	echo ""
-	echo "Examples:"
+  echo ""
+  echo "This script calls the 'intend4' apptainer container."
+  echo "Run it in an interactive session and from the bids data directory containing your subjects."
+  echo "Modality is the only required argument: specify 'bold' or 'dwi'."
+  echo ""
+  echo "Examples:"
   echo "  Modify the phasediff fieldmap JSON files for all subjects:"
-	echo "    > $PROG bold"
+  echo "    > $PROG bold"
   echo ""
   echo "  Modify the Reverse Phase encoded image JSON file (fmap/*.epi) for all subjects:"
-	echo "    > $PROG dwi"
+  echo "    > $PROG dwi"
   echo ""
   echo "  To remove the phasediff IntendedFor values, add the flag --remove after the modality:"
-	echo "    > $PROG bold --remove"
+  echo "    > $PROG bold --remove"
   echo ""
   echo "  Modify the phasediff fieldmap JSON files for just subjects 078 and 215:"
-	echo "    > $PROG bold --participant-label 078 215"
+  echo "    > $PROG bold --participant-label 078 215"
   echo ""
 }
 
@@ -59,5 +59,5 @@ if [ "$MODALITY" != 'bold' -a "$MODALITY" != 'dwi' ]; then
 fi
 
 # echo "ARGS=$@"
-# docker run -it --rm --name intend4 -v "${PWD}":/data ${IMG} "${MODALITY}" --verbose $@
-apptainer run --bind "${PWD}":/data ${SIF}/intend4.sif   "${MODALITY}" --verbose $@
+
+apptainer run --bind "${PWD}":/data ${SIF}/intend4.sif ${MODALITY} --verbose $@
