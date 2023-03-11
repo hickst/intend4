@@ -16,19 +16,25 @@ Intend4 will handle **permissions** on the json files it needs to alter, includi
 
 ## Using the Intend4 Tool
 
-### **Prerequisite**: Docker
+### **Prerequisite**: Docker or Apptainer
 
-You must have Docker installed and working on your machine to use this project. For instructions on how to install Docker see [this link](https://docs.docker.com/get-docker/).
+You must have Docker (or Apptainer) installed and working on your machine to use this project. For instructions on how to install Docker see [this link](https://docs.docker.com/get-docker/).
 
 ### **Step 1**: Download Intend4 Script and Test Data
 
-- Download the `intend4.sh` bash script file:
+- To run intend4 with the **Docker** script, download the `intend4.sh` bash script file:
 
-  `wget https://bitbucket.org/dpat/neuro4rii/raw/main/bash_scripts/intend4.sh`
+  `wget https://github.com/hickst/intend4/raw/main/intend4.sh`
 
-  (If wget does not work for you, then put the address https://bitbucket.org/dpat/neuro4rii/raw/main/bash_scripts/intend4.sh into your browser and right-click to save a copy of the script )
+  (If wget does not work for you, then put the address  https://raw.githubusercontent.com/hickst/intend4/main/intend4.sh into your browser and right-click to save a copy of the script )
 
   Ensure it is executable and in your path.
+
+- To run intend4 with the **Apptainer** script, download the `intend4_hpc.sh` bash script file:
+
+   `wget https://github.com/hickst/intend4/raw/main/intend4_hpc.sh`
+
+   Anywhere the documentation and examples refer to `intend4.sh`, substitute `intend4_hpc.sh` instead.
 
 - Download the dataset: [BIDS_DATA.zip](https://bitbucket.org/dpat/neuro4rii/src/main/data/BIDS_MRI.zip): Choose *Open raw* under the `...` on the right and the file should download.  It includes 5 subjects, using the BIDS file structure, all with *dwi*, *fmap*, and *func* directories, but the image files are empty so the dataset is tiny (~100 Kb). 
 
@@ -38,7 +44,7 @@ You must have Docker installed and working on your machine to use this project. 
 
 - Unzip the BIDS_MRI.zip file and navigate to the BIDS_MRI/data directory.
 
-### **Step 2**: Learn to Run the **Intend4** Docker container on Test Data
+### **Step 2**: Learn to Run the **Intend4** container on Test Data
 
 - The script assumes you are running from your **BIDS data directory**!  
   This is the directory where your NIfTI BIDS data and the dataset_description.json reside.

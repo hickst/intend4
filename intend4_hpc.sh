@@ -1,19 +1,19 @@
 #!/bin/bash
 #
-# Shell script to run the intend4 program from the intend4 Docker container.
+# Shell script to run the intend4 program from the intend4 Apptainer container.
 #	This script will add and populate the IntendedFor field in the appropriate JSON fieldmap files.
 # This script mounts the required directories and calls the intend4 program inside the container.
+# The script will ultimately live here: https://bitbucket.org/dpat/neuro4rii/src/main/bash_scripts/
 
 # echo "ARGS=$*"
 
 PROG=$0
-IMG=hickst/intend4
-
+export SIF=${SIF:-/contrib/singularity/shared/neuroimaging}
 
 help () {
 	echo ""
-	echo "This script calls the 'intend4' docker container."
-	echo "Run it from the bids data directory containing your subjects."
+	echo "This script calls the 'intend4' apptainer container."
+	echo "Run it in an interactive session and from the bids data directory containing your subjects."
 	echo "Modality is the only required argument: specify 'bold' or 'dwi'."
 	echo ""
 	echo "Examples:"
@@ -59,4 +59,5 @@ if [ "$MODALITY" != 'bold' -a "$MODALITY" != 'dwi' ]; then
 fi
 
 # echo "ARGS=$@"
-docker run -it --rm --name intend4 -v "${PWD}":/data ${IMG} "${MODALITY}" --verbose $@
+# docker run -it --rm --name intend4 -v "${PWD}":/data ${IMG} "${MODALITY}" --verbose $@
+apptainer run --bind "${PWD}":/data ${SIF}/intend4.sif   "${MODALITY}" --verbose $@
