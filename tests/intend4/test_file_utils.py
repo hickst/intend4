@@ -1,6 +1,6 @@
 # Tests for the file utilities module.
 #   Written by: Tom Hicks. 5/22/2020.
-#   Last Modified: Move test_get_permissions to here.
+#   Last Modified: Fix magic number assumption in test_get_permissions.
 #
 import os
 import tempfile
@@ -73,7 +73,6 @@ class TestFileUtils(object):
     print(perms)
     assert perms is not None
     assert type(perms) == int
-    assert perms == 33188
 
 
   def test_good_dir_path(self):

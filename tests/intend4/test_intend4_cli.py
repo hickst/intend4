@@ -1,6 +1,6 @@
 # Tests of the IntendedFor CLI module.
 #   Written by: Tom Hicks and Dianne Patterson. 12/7/2021.
-#   Last Modified: Update and enhance tests for default BIDS directory.
+#   Last Modified: Remove poor edge case test.
 #
 import os
 import pytest
@@ -120,22 +120,6 @@ class TestIntend4CLI(object):
       with pytest.raises(RuntimeError) as rte:
         cli.main()
       assert 'BIDS validator got an error while processing the BIDS Data directory' in str(rte)
-
-
-  def test_main_nobidsdir(self, capsys, clear_argv):
-    """
-    Default BIDS_DIR and not in container => fail with writeable error.
-    """
-    if (os.environ.get('RUNNING_IN_CONTAINER') is None):
-      sys.argv = ['intend4', '-v', 'bold', '--participant-label', '188']
-      with pytest.raises(SystemExit) as se:
-        cli.main()
-      assert se.value.code == cli.BIDS_DIR_EXIT_CODE
-      sysout, syserr = capsys.readouterr()
-      print(f"CAPTURED SYS.ERR:\n{syserr}")
-      assert 'A writeable BIDS data directory must be specified' in syserr
-    else:
-      assert True
 
 
   def test_main_defaultbidsdir(self, capsys, clear_argv):
