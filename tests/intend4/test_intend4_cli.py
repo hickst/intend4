@@ -1,6 +1,6 @@
 # Tests of the IntendedFor CLI module.
 #   Written by: Tom Hicks and Dianne Patterson. 12/7/2021.
-#   Last Modified: Remove poor edge case test.
+#   Last Modified: Update tests for required modality flag.
 #
 import os
 import pytest
@@ -55,25 +55,24 @@ class TestIntend4CLI(object):
 
 
   def test_main_no_modality(self, capsys, clear_argv):
-    "Test of argparse"
     with pytest.raises(SystemExit) as se:
       sys.argv = ['intend4']
       cli.main()
     assert se.value.code == SYSEXIT_ERROR_CODE
     sysout, syserr = capsys.readouterr()
     print(f"CAPTURED SYS.ERR:\n{syserr}")
-    assert 'the following arguments are required: modality' in syserr
+    assert 'the following arguments are required: -m/--modality' in syserr
 
 
   def test_main_bad_modality(self, capsys):
     with pytest.raises(SystemExit) as se:
-      sys.argv = ['intend4', 'fMRI' ]
+      sys.argv = ['intend4', '-m', 'fMRI' ]
       cli.main()
     assert se.value.code == SYSEXIT_ERROR_CODE
     sysout, syserr = capsys.readouterr()
     print(f"CAPTURED SYS.OUT:\n{sysout}")
     print(f"CAPTURED SYS.ERR:\n{syserr}")
-    assert 'argument modality: invalid choice' in syserr
+    assert 'argument -m/--modality: invalid choice' in syserr
 
 
   def test_main_noargs(self, capsys, clear_argv):
@@ -99,7 +98,7 @@ class TestIntend4CLI(object):
 
   def test_main_nosubjnums(self, capsys, clear_argv):
     with pytest.raises(SystemExit) as se:
-      sys.argv = ['intend4', '-v', 'bold', '--bids-dir', self.bids_test_dir, '--participant-label']
+      sys.argv = ['intend4', '-v', '-m', 'bold', '--bids-dir', self.bids_test_dir, '--participant-label']
       cli.main()
     assert se.value.code == cli.SUBJ_NUMS_EXIT_CODE
     sysout, syserr = capsys.readouterr()
@@ -116,7 +115,7 @@ class TestIntend4CLI(object):
       print(f"tmpdir={tmpdir}")
       # copy of data omitted: not valid BIDS directory
       os.chdir(tmpdir)
-      sys.argv = ['intend4', '-v', 'bold', '--bids-dir', tmpdir, '--participant-label', '188']
+      sys.argv = ['intend4', '-v', '-m', 'bold', '--bids-dir', tmpdir, '--participant-label', '188']
       with pytest.raises(RuntimeError) as rte:
         cli.main()
       assert 'BIDS validator got an error while processing the BIDS Data directory' in str(rte)
@@ -128,7 +127,7 @@ class TestIntend4CLI(object):
     """
     if (os.environ.get('RUNNING_IN_CONTAINER') is not None):
       os.system(f"cp -Rp {self.bids_test_dir}/* {BIDS_DIR}")
-      sys.argv = ['intend4', '-v', 'bold', '--participant-label', '188']
+      sys.argv = ['intend4', '-v', '-m', 'bold', '--participant-label', '188']
       cli.main()
       # os.system(f"rm -rf {BIDS_DIR}")  # clean up
       sysout, syserr = capsys.readouterr()
@@ -144,7 +143,7 @@ class TestIntend4CLI(object):
       print(f"tmpdir={tmpdir}")
       os.system(f"cp -Rp {self.bids_test_dir} {tmpdir}")
       os.chdir(tmpdir)
-      sys.argv = ['intend4', '-v', 'bold', '--bids-dir', os.path.join(tmpdir, DATA_SUBDIR), '--participant-label', '188']
+      sys.argv = ['intend4', '-v', '-m', 'bold', '--bids-dir', os.path.join(tmpdir, DATA_SUBDIR), '--participant-label', '188']
       cli.main()
       sysout, syserr = capsys.readouterr()
       print(f"CAPTURED SYS.ERR:\n{syserr}")

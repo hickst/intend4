@@ -1,7 +1,7 @@
 # Program to insert IntendedFor array in phasediff JSON sidecar files in order
 # to trigger fMRIPrep or QSIPrep to run SDC (Susceptibility Distortion Correction).
 #   Written by: Tom Hicks and Dianne Patterson. 4/21/21.
-#   Last Modified: Update default BIDS directory.
+#   Last Modified: Remove deprecated setting.
 #
 import os
 import sys
@@ -27,9 +27,6 @@ def do_subjects(modality, args):
   """
   # use the optionally specified BIDS data dir or default to current directory
   bids_dir = args.get('bids_dir', BIDS_DIR)
-
-  # following setting avoids an annoying warning message about deprecated feature
-  bids.config.set_option('extension_initial_dot', True)
 
   # analyze BIDS data directory but exit if not valid to avoid changing any files
   sys.tracebacklimit = 0

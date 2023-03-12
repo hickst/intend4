@@ -1,7 +1,7 @@
 # Program to create IntendedFor array in phasediff JSON sidecar files in order
 # to trigger fMRIPrep to run SDC (Susceptibility Distortion Correction).
 #   Written by: Tom Hicks and Dianne Patterson. 4/21/21.
-#   Last Modified: Update default BIDS directory.
+#   Last Modified: Add required modality flag.
 #
 import argparse
 import os
@@ -68,8 +68,9 @@ def main(argv=None):
     help='Print informational messages during processing [default: False (non-verbose mode)].'
   )
 
+  # set modality type
   parser.add_argument(
-    'modality', choices=ALLOWED_MODALITIES, 
+    '-m', '--modality', dest='modality', choices=ALLOWED_MODALITIES, required=True,
     help=f"Modality of the image files. Must be one of: {ALLOWED_MODALITIES}"
   )
 
