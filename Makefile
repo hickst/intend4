@@ -5,7 +5,6 @@ TESTDIR=${TOPLVL}/tests
 TEST_DATA_DIR=${TOPLVL}/work
 
 ARGS=
-APP_ROOT=/intend4
 ENVLOC=/etc/trhenv
 EP=/bin/bash
 IMG=hickst/intend4

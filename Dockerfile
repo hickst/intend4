@@ -1,4 +1,4 @@
-FROM python:3.9.7
+FROM python:3.11.2
 
 LABEL maintainer="Tom Hicks hickst@email.arizona.edu"
 
