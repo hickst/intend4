@@ -1,7 +1,7 @@
 # Program to insert IntendedFor array in phasediff JSON sidecar files in order
 # to trigger fMRIPrep or QSIPrep to run SDC (Susceptibility Distortion Correction).
 #   Written by: Tom Hicks and Dianne Patterson. 4/21/21.
-#   Last Modified: Remove deprecated setting.
+#   Last Modified: Remove some redundant error msg prefixes.
 #
 import os
 import sys
@@ -166,7 +166,7 @@ def subjrelpath (subjpath):
     if (ndx != -1):
       return subjpath[ndx+1:]
     else:
-      raise TypeError(f"Error: Unable to remove subject prefix from {subjpath}: no '/' found.")
+      raise TypeError(f"Unable to remove subject prefix from {subjpath}: no '/' found.")
   else:                                # given file is not relative to a subject directory
     return None
 

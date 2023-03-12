@@ -1,7 +1,7 @@
 # Program to create IntendedFor array in phasediff JSON sidecar files in order
 # to trigger fMRIPrep to run SDC (Susceptibility Distortion Correction).
 #   Written by: Tom Hicks and Dianne Patterson. 4/21/21.
-#   Last Modified: Add required modality flag.
+#   Last Modified: Remove some redundant error msg prefixes.
 #
 import argparse
 import os
@@ -38,7 +38,7 @@ def check_subj_nums (program_name, subj_nums):
   """
   if (subj_nums is not None and not subj_nums):  # only True if snums is an empty list
     errMsg = "({}): ERROR: {} Exiting...".format(program_name,
-             'Error: if --participant_label is used, one or more subject numbers must be specified.')
+             'If --participant_label is used, one or more subject numbers must be specified.')
     print(errMsg, file=sys.stderr)
     sys.exit(SUBJ_NUMS_EXIT_CODE)
 
